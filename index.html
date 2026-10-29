@@ -1,245 +1,414 @@
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lux & Reflect - Neon Lazer Bulmacası</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro Penaltı & Serbest Vuruş 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        orbitron: ['Orbitron', 'sans-serif'],
-                        rajdhani: ['Rajdhani', 'sans-serif'],
-                    },
-                    colors: {
-                        neon: {
-                            blue: '#00f3ff',
-                            pink: '#ff0055',
-                            green: '#00ff66',
-                            yellow: '#ffe600',
-                            purple: '#b000ff',
-                            dark: '#050811',
-                            card: '#0f172a'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
         body {
-            background-color: #050811;
-            color: #f1f5f9;
-            font-family: 'Rajdhani', sans-serif;
             touch-action: manipulation;
-            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .neon-glow-blue {
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.35), inset 0 0 15px rgba(0, 243, 255, 0.15);
-            border-color: #00f3ff;
+        canvas {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);
         }
-        .neon-text-blue {
-            text-shadow: 0 0 12px rgba(0, 243, 255, 0.8);
-        }
-        .neon-text-pink {
-            text-shadow: 0 0 12px rgba(255, 0, 85, 0.8);
-        }
-
-        #gameCanvas {
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.9) 0%, rgba(5, 8, 17, 0.98) 100%),
-                linear-gradient(rgba(0, 243, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-        }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #050811; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between select-none">
+<body class="flex flex-col items-center justify-center min-h-screen text-white p-2">
 
-    <!-- HEADER -->
-    <header class="w-full max-w-5xl mx-auto p-4 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xl shadow-[0_0_15px_rgba(0,243,255,0.3)]">
-                <i class="fa-solid fa-bolt animate-pulse"></i>
+    <!-- Üst Skor & Bilgi Paneli -->
+    <div class="w-full max-w-xl bg-slate-800/80 backdrop-blur rounded-xl p-4 mb-3 border border-slate-700 flex justify-between items-center shadow-lg">
+        <div>
+            <h1 class="text-xl font-extrabold text-emerald-400 tracking-wide">FUTBOL 2026</h1>
+            <p class="text-xs text-slate-400">Penaltı & Serbest Vuruş</p>
+        </div>
+        <div class="flex gap-4 text-center">
+            <div class="bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Skor</div>
+                <div id="scoreDisplay" class="text-lg font-black text-amber-400">0</div>
             </div>
-            <div>
-                <h1 class="font-orbitron font-extrabold text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-500 neon-text-blue">
-                    LUX & REFLECT
-                </h1>
-                <p class="text-xs text-slate-400 tracking-widest font-semibold uppercase">Optik Lazer Bulmacası</p>
+            <div class="bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">En Yüksek</div>
+                <div id="highScoreDisplay" class="text-lg font-black text-emerald-400">0</div>
             </div>
-        </div>
-
-        <!-- LEVEL DISPLAY & CONTROLS -->
-        <div class="flex items-center gap-2 sm:gap-3">
-            <button onclick="openLevelSelect()" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 rounded-lg px-3.5 py-1.5 flex items-center gap-2 transition active:scale-95">
-                <i class="fa-solid fa-list-check text-cyan-400"></i>
-                <span class="text-xs text-slate-400 uppercase font-bold hidden sm:inline">Bölüm:</span>
-                <span id="levelDisplay" class="font-orbitron text-base font-bold text-cyan-400">1 / 6</span>
-            </button>
-
-            <button onclick="useHint()" class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3.5 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 active:scale-95">
-                <i class="fa-solid fa-lightbulb text-amber-400 animate-pulse"></i>
-                <span class="hidden sm:inline">İpucu</span>
-            </button>
-
-            <button id="soundBtn" onclick="toggleSound()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 w-10 h-10 rounded-lg flex items-center justify-center transition">
-                <i class="fa-solid fa-volume-high"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- MAIN GAME DISPLAY -->
-    <main class="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 my-auto">
-
-        <!-- INSTRUCTION -->
-        <div id="instructionBox" class="mb-3 text-center text-xs sm:text-sm text-slate-300 bg-slate-900/60 border border-slate-800 px-4 py-2 rounded-full backdrop-blur-sm max-w-md w-full shadow-lg">
-            <i class="fa-solid fa-hand-pointer text-cyan-400 mr-1.5"></i> Aynalara **dokunarak** açılarını değiştirin.
-        </div>
-
-        <!-- CANVAS WRAPPER -->
-        <div class="relative rounded-2xl p-1 bg-gradient-to-b from-cyan-500/30 via-slate-800/40 to-pink-500/30 neon-glow-blue">
-            <canvas id="gameCanvas" width="600" height="600" class="rounded-xl cursor-pointer block max-w-full h-auto shadow-2xl"></canvas>
-
-            <!-- WIN OVERLAY -->
-            <div id="winModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-6 text-center animate-fade-in z-20">
-                <div class="w-16 h-16 bg-emerald-500/20 border border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 text-3xl mb-4 shadow-[0_0_25px_rgba(16,185,129,0.5)]">
-                    <i class="fa-solid fa-check"></i>
-                </div>
-                <h2 class="font-orbitron text-2xl font-black text-white mb-2 tracking-wide">SEVİYE TAMAMLANDI!</h2>
-                <p class="text-slate-300 text-sm mb-6 max-w-xs">Tüm ışın hedeflerle mükemmel şekilde eşleşti.</p>
-                <button onclick="nextLevel()" class="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-orbitron font-extrabold px-8 py-3 rounded-lg shadow-lg shadow-cyan-500/20 active:scale-95 transition flex items-center gap-2">
-                    SONRAKİ BÖLÜM <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- BOTTOM ACTION BUTTONS -->
-        <div class="mt-4 flex items-center gap-3">
-            <button onclick="resetLevel()" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 active:scale-95">
-                <i class="fa-solid fa-rotate-right"></i> Yeniden Başlat
-            </button>
-            <button onclick="prevLevel()" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg text-xs font-semibold transition active:scale-95">
-                <i class="fa-solid fa-chevron-left"></i> Önceki
-            </button>
-            <button onclick="nextLevel()" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg text-xs font-semibold transition active:scale-95">
-                Sonraki <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        </div>
-
-    </main>
-
-    <!-- HINT DIALOG -->
-    <div id="hintModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-amber-500/40 rounded-xl p-6 max-w-sm w-full shadow-2xl">
-            <div class="flex items-center gap-3 mb-3 text-amber-400">
-                <i class="fa-solid fa-lightbulb text-xl"></i>
-                <h3 class="font-orbitron font-bold text-lg">İpucu</h3>
-            </div>
-            <p id="hintText" class="text-sm text-slate-300 mb-6 leading-relaxed">
-                Işını yansıtmak için ilgili aynayı tıklayarak döndürün.
-            </p>
-            <button onclick="closeHint()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold py-2 rounded-lg text-sm transition">
-                Anladım
-            </button>
-        </div>
-    </div>
-
-    <!-- LEVEL SELECT DIALOG -->
-    <div id="levelSelectModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-cyan-500/40 rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-orbitron font-bold text-lg text-cyan-400">Bölüm Seçimi</h3>
-                <button onclick="closeLevelSelect()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <div id="levelGrid" class="grid grid-cols-3 gap-3 my-4">
-                <!-- Dynamically Populated -->
+            <div class="bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Seviye</div>
+                <div id="levelDisplay" class="text-lg font-black text-cyan-400">1</div>
             </div>
         </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="w-full text-center py-3 text-xs text-slate-500 border-t border-slate-800/50">
-        Lux & Reflect · Futurist Lazer Bulmaca Oyunu
-    </footer>
+    <!-- Oyun Sahası Canvas -->
+    <div class="relative w-full max-w-xl flex justify-center">
+        <canvas id="gameCanvas" width="480" height="600" class="rounded-xl border-2 border-slate-700 w-full max-w-[480px] h-auto cursor-crosshair"></canvas>
+        
+        <!-- Mesaj Ekranı Overlay -->
+        <div id="messageOverlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center transition-all duration-300">
+            <h2 id="msgTitle" class="text-3xl font-black text-emerald-400 mb-2 tracking-wider">ŞUTA HAZIRLAN!</h2>
+            <p id="msgSub" class="text-slate-300 text-sm mb-6 text-center px-6">Topu kaleye doğru sürükleyip bırakarak (swipe) şutunu çek.</p>
+            <button id="startBtn" onclick="startGame()" class="px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95 text-lg uppercase tracking-wider">
+                BAŞLA
+            </button>
+        </div>
+    </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- Alt İpuçları -->
+    <div class="w-full max-w-xl mt-3 text-center text-xs text-slate-400">
+        💡 <span class="text-slate-300">İpucu:</span> Farenizle veya parmağınızla hızlıca ileri doğru çizgi çekerek falso ve hız verebilirsiniz.
+    </div>
+
     <script>
-        // WEB AUDIO API SYNTHESIZER
-        let audioCtx = null;
-        let soundEnabled = true;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
+        // Oyun Durumu Değişkenleri
+        let score = 0;
+        let highScore = localStorage.getItem('fb_highScore') || 0;
+        let level = 1;
+        let gameState = 'START'; // START, AIMING, IN_FLIGHT, GOAL, SAVED, OUT
+
+        document.getElementById('highScoreDisplay').innerText = highScore;
+
+        // Ses Efektleri (Web Audio API)
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
 
         function playSound(type) {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioCtx) return;
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            if (type === 'rotate') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(320, now);
-                osc.frequency.exponentialRampToValueAtTime(640, now + 0.08);
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                osc.start(now);
-                osc.stop(now + 0.08);
-            } else if (type === 'win') {
+            const now = audioCtx.currentTime;
+
+            if (type === 'kick') {
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.setValueAtTime(659.25, now + 0.1);
-                osc.frequency.setValueAtTime(783.99, now + 0.2);
-                osc.frequency.setValueAtTime(1046.50, now + 0.3);
-                gain.gain.setValueAtTime(0.18, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
-                osc.stop(now + 0.6);
+                osc.stop(now + 0.15);
+            } else if (type === 'goal') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'save') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.2);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
             }
         }
 
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const btn = document.getElementById('soundBtn');
-            btn.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-red-400"></i>';
+        // Kale & Obje Pozisyonları
+        const goal = { x: 90, y: 80, width: 300, height: 120 };
+        const ball = { x: 240, y: 500, radius: 12, vx: 0, vy: 0, vz: 0, z: 0, spin: 0 };
+        const goalkeeper = { x: 240, y: 180, width: 36, height: 50, vx: 2, state: 'IDLE' };
+        let barrier = [];
+
+        // Sürükleme Mantığı
+        let dragStart = null;
+        let dragCurrent = null;
+
+        function initLevel() {
+            ball.x = 240;
+            ball.y = 500;
+            ball.z = 0;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.vz = 0;
+            ball.spin = 0;
+
+            goalkeeper.x = 240;
+            goalkeeper.vx = (1.5 + level * 0.5) * (Math.random() > 0.5 ? 1 : -1);
+
+            // Baraj Oluştur (2. Seviyeden İtibaren)
+            barrier = [];
+            if (level >= 2) {
+                const wallCount = Math.min(4, level);
+                const startX = 240 - (wallCount * 18) / 2;
+                for (let i = 0; i < wallCount; i++) {
+                    barrier.push({ x: startX + i * 20, y: 340, width: 16, height: 45 });
+                }
+            }
+            gameState = 'AIMING';
         }
 
-        // CANVAS CONFIG
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const GRID_SIZE = 6;
-        const CELL_SIZE = canvas.width / GRID_SIZE;
+        function startGame() {
+            document.getElementById('messageOverlay').classList.add('hidden');
+            score = 0;
+            level = 1;
+            updateUI();
+            initLevel();
+        }
 
-        const DX = [1, 0, -1, 0];
-        const DY = [0, 1, 0, -
-```
+        function updateUI() {
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('levelDisplay').innerText = level;
+            document.getElementById('highScoreDisplay').innerText = highScore;
+        }
+
+        // Girdi Dinleyicileri
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (gameState !== 'AIMING') return;
+            dragStart = getCanvasPos(e);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (dragStart && gameState === 'AIMING') {
+                dragCurrent = getCanvasPos(e);
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (!dragStart || gameState !== 'AIMING') return;
+            const dragEnd = getCanvasPos(e);
+            shootBall(dragStart, dragEnd);
+            dragStart = null;
+            dragCurrent = null;
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (gameState !== 'AIMING') return;
+            dragStart = getCanvasPos(e);
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (dragStart && gameState === 'AIMING') {
+                dragCurrent = getCanvasPos(e);
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (!dragStart || gameState !== 'AIMING') return;
+            const dragEnd = e.changedTouches ? {
+                x: (e.changedTouches[0].clientX - canvas.getBoundingClientRect().left) * (canvas.width / canvas.getBoundingClientRect().width),
+                y: (e.changedTouches[0].clientY - canvas.getBoundingClientRect().top) * (canvas.height / canvas.getBoundingClientRect().height)
+            } : dragCurrent;
+            shootBall(dragStart, dragEnd);
+            dragStart = null;
+            dragCurrent = null;
+        });
+
+        function shootBall(start, end) {
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+
+            if (dy >= -10) return; // Arkaya veya yana çekmeleri engelle
+
+            ball.vx = dx * 0.08;
+            ball.vy = dy * 0.09;
+            ball.vz = -dy * 0.03; // Yükseklik hızı
+            ball.spin = dx * 0.015; // Falso
+
+            playSound('kick');
+            gameState = 'IN_FLIGHT';
+        }
+
+        // Oyun Döngüsü ve Güncelleme
+        function update() {
+            // Kaleci Hareketi
+            if (gameState === 'AIMING') {
+                goalkeeper.x += goalkeeper.vx;
+                if (goalkeeper.x < goal.x + 30 || goalkeeper.x > goal.x + goal.width - 30) {
+                    goalkeeper.vx *= -1;
+                }
+            }
+
+            // Top Hareketi
+            if (gameState === 'IN_FLIGHT') {
+                ball.x += ball.vx + ball.spin;
+                ball.y += ball.vy;
+                ball.z += ball.vz;
+                ball.vz -= 0.12; // Yerçekimi
+
+                if (ball.z < 0) ball.z = 0;
+
+                // Kaleci Zıplama / Atlama Mekaniği
+                if (ball.y < 260 && ball.y > 160) {
+                    const targetX = ball.x;
+                    goalkeeper.x += (targetX - goalkeeper.x) * 0.12;
+                }
+
+                // Çarpışma Kontrolü: Baraj
+                barrier.forEach(p => {
+                    if (ball.z < 30 &&
+                        ball.x > p.x - 10 && ball.x < p.x + p.width + 10 &&
+                        ball.y > p.y - 10 && ball.y < p.y + p.height) {
+                        ball.vy *= -0.3;
+                        ball.vx *= -0.5;
+                        playSound('save');
+                        endRound('SAVED', 'Baraja Takıldı!');
+                    }
+                });
+
+                // Çarpışma Kontrolü: Kaleci
+                if (Math.abs(ball.x - goalkeeper.x) < 25 &&
+                    Math.abs(ball.y - goalkeeper.y) < 25 &&
+                    ball.z < 45) {
+                    ball.vy *= -0.4;
+                    playSound('save');
+                    endRound('SAVED', 'Kaleci Kurtardı!');
+                }
+
+                // Kale Çizgisine Ulaştı mı?
+                if (ball.y <= goal.y + 10) {
+                    // Direk ve Gol Kontrolü
+                    const inWidth = ball.x > goal.x + 10 && ball.x < goal.x + goal.width - 10;
+                    const inHeight = ball.z < goal.height - 10;
+
+                    if (inWidth && inHeight) {
+                        playSound('goal');
+                        score += 100 + level * 20;
+                        if (score > highScore) {
+                            highScore = score;
+                            localStorage.setItem('fb_highScore', highScore);
+                        }
+                        level++;
+                        endRound('GOAL', 'HARİKA GOL!');
+                    } else {
+                        playSound('save');
+                        endRound('OUT', 'AUT!');
+                    }
+                }
+            }
+        }
+
+        function endRound(state, text) {
+            gameState = state;
+            setTimeout(() => {
+                const overlay = document.getElementById('messageOverlay');
+                document.getElementById('msgTitle').innerText = text;
+                document.getElementById('msgSub').innerText = state === 'GOAL' ? 'Sıradaki seviyeye geçiyorsun!' : 'Tekrar dene!';
+                document.getElementById('startBtn').innerText = state === 'GOAL' ? 'DEVAM ET' : 'YENİDEN DENE';
+                overlay.classList.remove('hidden');
+                updateUI();
+            }, 600);
+        }
+
+        // Ekran Çizimi
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Saha Zemin & Çim Çizgileri
+            ctx.fillStyle = '#15803d';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#16a34a';
+            for (let i = 0; i < canvas.height; i += 60) {
+                if ((i / 60) % 2 === 0) {
+                    ctx.fillRect(0, i, canvas.width, 60);
+                }
+            }
+
+            // Ceza Sahası Çizgisi
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 140, 400, 300);
+
+            // Kale Ağı ve Direkleri
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+
+            // Ağ Çizgileri
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1;
+            for (let x = goal.x; x <= goal.x + goal.width; x += 15) {
+                ctx.beginPath();
+                ctx.moveTo(x, goal.y);
+                ctx.lineTo(x, goal.y + goal.height);
+                ctx.stroke();
+            }
+
+            // Beyaz Kalıplar / Direkler
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(goal.x, goal.y, goal.width, goal.height);
+
+            // Baraj Çizimi
+            barrier.forEach(p => {
+                ctx.fillStyle = '#3b82f6';
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                // Kafa
+                ctx.fillStyle = '#fde047';
+                ctx.beginPath();
+                ctx.arc(p.x + p.width / 2, p.y - 6, 7, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Kaleci Çizimi
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(goalkeeper.x - goalkeeper.width / 2, goalkeeper.y - goalkeeper.height / 2 - (ball.y < 260 ? 10 : 0), goalkeeper.width, goalkeeper.height);
+            // Kaleci Kafası
+            ctx.fillStyle = '#fca5a5';
+            ctx.beginPath();
+            ctx.arc(goalkeeper.x, goalkeeper.y - goalkeeper.height / 2 - 8 - (ball.y < 260 ? 10 : 0), 9, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sürükleme Yön Çizgisi
+            if (dragStart && dragCurrent) {
+                ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                ctx.moveTo(ball.x, ball.y);
+                ctx.lineTo(ball.x + (dragCurrent.x - dragStart.x), ball.y + (dragCurrent.y - dragStart.y));
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Top Gölgesi
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(ball.x, ball.y, ball.radius * (1 - ball.z / 200), (ball.radius / 2) * (1 - ball.z / 200), 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Topun Kendisi (Yüksekliğe Göre Ölçeklenir)
+            const currentRadius = Math.max(4, ball.radius * (1 - ball.y / 1000) + ball.z * 0.1);
+            const drawY = ball.y - ball.z;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(ball.x, drawY, currentRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>
