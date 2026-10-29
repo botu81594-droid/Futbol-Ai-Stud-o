@@ -1,396 +1,245 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Futbol Menajeri 2026</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#0b1220;color:#edf3ff;font-family:Arial,sans-serif}
-header{padding:22px;background:#101c30;border-bottom:2px solid #35d07f}
-header h1{margin:0;color:#43e38b}
-header p{color:#a8b8ce;margin-bottom:0}
-main{max-width:1100px;margin:auto;padding:16px}
-.panel{background:#142238;border:1px solid #283d58;border-radius:14px;padding:17px;margin-bottom:16px}
-h2{margin-top:0}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
-.stat{background:#1d304a;padding:15px;border-radius:10px}
-.stat small{color:#aabbd0;display:block;margin-bottom:8px}
-.stat strong{font-size:21px;color:#4ce69a}
-nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
-button,select{background:#243a55;color:white;border:1px solid #45617e;border-radius:8px;padding:11px;cursor:pointer}
-button:hover{background:#315273}
-button.primary{background:#16834d;border:0}
-button:disabled{opacity:.45;cursor:not-allowed}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #30445e}
-th{color:#9eb4cc;font-size:13px}
-.tablewrap{overflow-x:auto}
-.tag{color:#4ce69a}
-.muted{color:#a8b8ce}
-.notice{padding:12px;border-radius:8px;background:#1c3047;color:#bcd0e6}
-.playergrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.player{background:#1c3047;padding:13px;border-radius:10px}
-.player strong{display:block;margin-bottom:8px}
-.hidden{display:none}
-#message{min-height:24px;color:#4ce69a}
-input,select{max-width:100%}
-footer{text-align:center;padding:25px;color:#8195ad}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lux & Reflect - Neon Lazer Bulmacası</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                    },
+                    colors: {
+                        neon: {
+                            blue: '#00f3ff',
+                            pink: '#ff0055',
+                            green: '#00ff66',
+                            yellow: '#ffe600',
+                            purple: '#b000ff',
+                            dark: '#050811',
+                            card: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050811;
+            color: #f1f5f9;
+            font-family: 'Rajdhani', sans-serif;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .neon-glow-blue {
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.35), inset 0 0 15px rgba(0, 243, 255, 0.15);
+            border-color: #00f3ff;
+        }
+        .neon-text-blue {
+            text-shadow: 0 0 12px rgba(0, 243, 255, 0.8);
+        }
+        .neon-text-pink {
+            text-shadow: 0 0 12px rgba(255, 0, 85, 0.8);
+        }
+
+        #gameCanvas {
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.9) 0%, rgba(5, 8, 17, 0.98) 100%),
+                linear-gradient(rgba(0, 243, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050811; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+    </style>
 </head>
-<body>
-<header>
-  <h1>⚽ FUTBOL MENAJERİ 2026</h1>
-  <p>Kulübünü yönet. Transfer yap. Şampiyon ol.</p>
-</header>
-<main>
-<section id="setup" class="panel">
-  <h2>🏟️ Kariyerini başlat</h2>
-  <p>Yönetmek istediğin kulübü seç.</p>
-  <option value="Fenerbahçe">Fenerbahçe</option>
-  <option value="Galatasaray">Galatasaray</option>
-  <option value="Beşiktaş">Beşiktaş</option>
-  <option value="Trabzonspor">Trabzonspor</option>
-  <option value="Başakşehir">Başakşehir</option>
-  <option value="Samsunspor">Samsunspor</option>
-  <option value="Göztepe">Göztepe</option>
-  <option value="Konyaspor">Konyaspor</option>
-  <option value="Alanyaspor">Alanyaspor</option>
-  <option value="Antalyaspor">Antalyaspor</option>
-  <option value="Çaykur Rizespor">Çaykur Rizespor</option>
-  <option value="Gaziantep FK">Gaziantep FK</option>
-  <option value="Kayserispor">Kayserispor</option>
-  <option value="Kasımpaşa">Kasımpaşa</option>
-  <option value="Eyüpspor">Eyüpspor</option>
-  <option value="Gençlerbirliği">Gençlerbirliği</option>
-  <option value="Bursaspor">Bursaspor</option>
-  <option value="Anadolu FK">Anadolu FK</option>
-  <option value="İstanbulspor">İstanbulspor</option>
-  <option value="Sakaryaspor">Sakaryaspor</option>
-</select>
-  <select id="clubChoice">
- <button class="primary" onclick="startGame()">Kariyere başla</button>
-  <p class="muted">Bu ilk sürümde kulüp ve oyuncu verileri oyun amaçlıdır.</p>
-</section>
+<body class="min-h-screen flex flex-col justify-between select-none">
 
-<div id="game" class="hidden">
-  <section class="panel">
-    <h2 id="clubTitle">Kulübüm</h2>
-    <div class="stats">
-      <div class="stat"><small>Bütçe</small><strong id="budget">€0</strong></div>
-      <div class="stat"><small>Lig sırası</small><strong id="rank">-</strong></div>
-      <div class="stat"><small>Oynanan maç</small><strong id="played">0</strong></div>
-      <div class="stat"><small>Hafta</small><strong id="week">1</strong></div>
+    <!-- HEADER -->
+    <header class="w-full max-w-5xl mx-auto p-4 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xl shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+                <i class="fa-solid fa-bolt animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="font-orbitron font-extrabold text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-500 neon-text-blue">
+                    LUX & REFLECT
+                </h1>
+                <p class="text-xs text-slate-400 tracking-widest font-semibold uppercase">Optik Lazer Bulmacası</p>
+            </div>
+        </div>
+
+        <!-- LEVEL DISPLAY & CONTROLS -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button onclick="openLevelSelect()" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 rounded-lg px-3.5 py-1.5 flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-list-check text-cyan-400"></i>
+                <span class="text-xs text-slate-400 uppercase font-bold hidden sm:inline">Bölüm:</span>
+                <span id="levelDisplay" class="font-orbitron text-base font-bold text-cyan-400">1 / 6</span>
+            </button>
+
+            <button onclick="useHint()" class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3.5 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 active:scale-95">
+                <i class="fa-solid fa-lightbulb text-amber-400 animate-pulse"></i>
+                <span class="hidden sm:inline">İpucu</span>
+            </button>
+
+            <button id="soundBtn" onclick="toggleSound()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 w-10 h-10 rounded-lg flex items-center justify-center transition">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GAME DISPLAY -->
+    <main class="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 my-auto">
+
+        <!-- INSTRUCTION -->
+        <div id="instructionBox" class="mb-3 text-center text-xs sm:text-sm text-slate-300 bg-slate-900/60 border border-slate-800 px-4 py-2 rounded-full backdrop-blur-sm max-w-md w-full shadow-lg">
+            <i class="fa-solid fa-hand-pointer text-cyan-400 mr-1.5"></i> Aynalara **dokunarak** açılarını değiştirin.
+        </div>
+
+        <!-- CANVAS WRAPPER -->
+        <div class="relative rounded-2xl p-1 bg-gradient-to-b from-cyan-500/30 via-slate-800/40 to-pink-500/30 neon-glow-blue">
+            <canvas id="gameCanvas" width="600" height="600" class="rounded-xl cursor-pointer block max-w-full h-auto shadow-2xl"></canvas>
+
+            <!-- WIN OVERLAY -->
+            <div id="winModal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center p-6 text-center animate-fade-in z-20">
+                <div class="w-16 h-16 bg-emerald-500/20 border border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 text-3xl mb-4 shadow-[0_0_25px_rgba(16,185,129,0.5)]">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h2 class="font-orbitron text-2xl font-black text-white mb-2 tracking-wide">SEVİYE TAMAMLANDI!</h2>
+                <p class="text-slate-300 text-sm mb-6 max-w-xs">Tüm ışın hedeflerle mükemmel şekilde eşleşti.</p>
+                <button onclick="nextLevel()" class="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-orbitron font-extrabold px-8 py-3 rounded-lg shadow-lg shadow-cyan-500/20 active:scale-95 transition flex items-center gap-2">
+                    SONRAKİ BÖLÜM <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- BOTTOM ACTION BUTTONS -->
+        <div class="mt-4 flex items-center gap-3">
+            <button onclick="resetLevel()" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 active:scale-95">
+                <i class="fa-solid fa-rotate-right"></i> Yeniden Başlat
+            </button>
+            <button onclick="prevLevel()" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg text-xs font-semibold transition active:scale-95">
+                <i class="fa-solid fa-chevron-left"></i> Önceki
+            </button>
+            <button onclick="nextLevel()" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg text-xs font-semibold transition active:scale-95">
+                Sonraki <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- HINT DIALOG -->
+    <div id="hintModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/40 rounded-xl p-6 max-w-sm w-full shadow-2xl">
+            <div class="flex items-center gap-3 mb-3 text-amber-400">
+                <i class="fa-solid fa-lightbulb text-xl"></i>
+                <h3 class="font-orbitron font-bold text-lg">İpucu</h3>
+            </div>
+            <p id="hintText" class="text-sm text-slate-300 mb-6 leading-relaxed">
+                Işını yansıtmak için ilgili aynayı tıklayarak döndürün.
+            </p>
+            <button onclick="closeHint()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold py-2 rounded-lg text-sm transition">
+                Anladım
+            </button>
+        </div>
     </div>
-  </section>
-  <nav>
-    <button onclick="showTab('home')">Genel Bakış</button>
-    <button onclick="showTab('squad')">Kadro</button>
-    <button onclick="showTab('market')">Transfer</button>
-    <button onclick="showTab('tactics')">Taktik</button>
-    <button onclick="showTab('league')">Lig Tablosu</button>
-  </nav>
-  <p id="message"></p>
 
-  <section id="home" class="panel tab">
-    <h2>📋 Kulüp merkezi</h2>
-    <p id="nextMatch"></p>
-    <p id="formInfo" class="muted"></p>
-    <button class="primary" onclick="playMatch()">⚽ Maçı oyna</button>
-    <button onclick="saveGame()">💾 Oyunu kaydet</button>
-    <button onclick="resetGame()">Yeni kariyer</button>
-    <h3>Son maçlar</h3>
-    <div id="history"></div>
-  </section>
+    <!-- LEVEL SELECT DIALOG -->
+    <div id="levelSelectModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-cyan-500/40 rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-orbitron font-bold text-lg text-cyan-400">Bölüm Seçimi</h3>
+                <button onclick="closeLevelSelect()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="levelGrid" class="grid grid-cols-3 gap-3 my-4">
+                <!-- Dynamically Populated -->
+            </div>
+        </div>
+    </div>
 
-  <section id="squad" class="panel tab hidden">
-    <h2>👥 Takım kadrosu</h2>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Oyuncu</th><th>Mevki</th><th>Yaş</th><th>GEN</th><th>Değer</th><th>Maaş/hafta</th></tr></thead>
-      <tbody id="squadRows"></tbody>
-    </table></div>
-  </section>
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-3 text-xs text-slate-500 border-t border-slate-800/50">
+        Lux & Reflect · Futurist Lazer Bulmaca Oyunu
+    </footer>
 
-  <section id="market" class="panel tab hidden">
-    <h2>🔄 Transfer pazarı</h2>
-    <p class="muted">Bir oyuncu alarak kadronu güçlendir. Bütçeni kontrol et!</p>
-    <div id="marketRows" class="playergrid"></div>
-  </section>
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // WEB AUDIO API SYNTHESIZER
+        let audioCtx = null;
+        let soundEnabled = true;
 
-  <section id="tactics" class="panel tab hidden">
-    <h2>🧠 Teknik direktör</h2>
-    <label for="formation">Diziliş: </label>
-    <select id="formation" onchange="setFormation(this.value)">
-      <option>4-3-3</option><option>4-4-2</option><option>4-2-3-1</option>
-    </select>
-    <br><br>
-    <label for="style">Oyun planı: </label>
-    <select id="style" onchange="setStyle(this.value)">
-      <option value="balanced">Dengeli</option>
-      <option value="attack">Hücum</option>
-      <option value="defense">Savunma</option>
-      <option value="possession">Topa sahip olma</option>
-    </select>
-    <p id="tacticInfo" class="notice"></p>
-    <p class="muted">Taktik seçimin maç simülasyonunu etkiler.</p>
-  </section>
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
 
-  <section id="league" class="panel tab hidden">
-    <h2>🏆 Lig tablosu</h2>
-    <div class="tablewrap"><table>
-      <thead><tr><th>#</th><th>Kulüp</th><th>O</th><th>G</th><th>B</th><th>M</th><th>A</th><th>P</th></tr></thead>
-      <tbody id="leagueRows"></tbody>
-    </table></div>
-  </section>
-</div>
-</main>
-<footer>Futbol Menajeri 2026 · Taraftar yapımı demo oyun</footer>
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
 
-<script>
-const $ = id => document.getElementById(id);
-const initialNames = [
- ["Mert Kaleci","KL",24,74,0.9],
- ["Emir Sağbek","SLB",22,70,0.6],
- ["Kaan Stoper","STP",26,75,1.0],
- ["Efe Stoper","STP",23,73,0.8],
- ["Arda Solbek","SĞB",21,71,0.7],
- ["Deniz Orta","MO",25,76,1.1],
- ["Can Oyun Kurucu","MO",22,78,1.4],
- ["Yiğit Orta","MO",27,74,1.0],
- ["Bora Kanat","SLK",20,77,1.2],
- ["Kerem Forvet","SF",24,80,1.7],
- ["Umut Kanat","SĞK",23,75,1.0],
- ["Ali Yedek","MO",19,68,0.4]
-];
-const marketPlayers = [
- {name:"Baran Yıldız",pos:"SF",age:21,rating:79,value:8500000,wage:65000},
- {name:"Eren Demir",pos:"MO",age:23,rating:77,value:6200000,wage:50000},
- {name:"Mete Kaya",pos:"STP",age:25,rating:76,value:5500000,wage:45000},
- {name:"Ozan Aslan",pos:"KL",age:20,rating:74,value:4200000,wage:35000},
- {name:"Sarp Arslan",pos:"SLK",age:22,rating:78,value:7200000,wage:60000},
- {name:"Berk Aydın",pos:"SĞB",age:24,rating:75,value:4800000,wage:40000},
-  {name:"Batuhan Erdaş",pos:"SF",age:29,rating:99,value:99000000,wage:50000}
-];
-const clubNames = ["Fenerbahçe", "Galatasaray", "Beşiktaş", "Trabzonspor", "Başakşehir", "Samsunspor", "Göztepe", "Konyaspor", "Alanyaspor", "Antalyaspor", "Çaykur Rizespor", "Gaziantep FK", "Kayserispor", "Kasımpaşa", "Eyüpspor", "Gençlerbirliği", "Bursaspor", "Anadolu FK", "İstanbulspor", "Sakaryaspor"
-];
-let state=null;
-function buildFixtures() {
-  const rotation = [...clubNames];
-  const firstHalf = [];
-  const n = rotation.length;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
 
-  for (let round = 0; round < n - 1; round++) {
-    const games = [];
+            if (type === 'rotate') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(640, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'win') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
 
-    for (let i = 0; i < n / 2; i++) {
-      let home = rotation[i];
-      let away = rotation[n - 1 - i];
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundBtn');
+            btn.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-red-400"></i>';
+        }
 
-      if ((round + i) % 2 !== 0) {
-        [home, away] = [away, home];
-      }
+        // CANVAS CONFIG
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const GRID_SIZE = 6;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
 
-      games.push({ home, away });
-    }
-
-    firstHalf.push(games);
-
-    // İlk takımı sabit tutup diğerlerini döndür.
-    rotation.splice(1, 0, rotation.pop());
-  }
-
-  const secondHalf = firstHalf.map(games =>
-    games.map(({ home, away }) => ({
-      home: away,
-      away: home
-    }))
-  );
-
-  return [...firstHalf, ...secondHalf];
-}
-function money(n){return "€"+Math.round(n).toLocaleString("tr-TR")}
-function newTeam(){return initialNames.map(p=>({name:p[0],pos:p[1],age:p[2],rating:p[3],value:p[4]*1000000,wage:p[4]*12000,goals:0,assists:0}))}
-function startGame() {
-  const club = $ ("clubChoice").value;
-
-  state = {
-    club,
-    budget: 30000000,
-    week: 1,
-    played: 0,
-    formation: "4-3-3",
-    style: "balanced",
-    players: newTeam(),
-    history: [],
-    fixtures: buildFixtures(),
-    teams: clubNames.map((name, i) => ({
-      name,
-      played: 0,
-      w: 0,
-      d: 0,
-      l: 0,
-      gf: 0,
-      ga: 0,
-      pts: 0,
-      base: name === club
-        ? 76
-        : 70 + Math.floor(Math.random() * 9)
-    }))
-  };
-
-  $("setup").classList.add("hidden");
-  $("game").classList.remove("hidden");
-
-  update();
-  showTab("home");
-  msg("Kariyer başladı! Başarılar hocam.");
-}
-function msg(s){$("message").textContent=s}
-function showTab(id){document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");if(id==="league")renderLeague()}
-function setFormation(v){state.formation=v;updateTactics()}
-function setStyle(v){state.style=v;updateTactics()}
-function updateTactics(){
- $("formation").value=state.formation;$("style").value=state.style;
- const bonus={attack:"Hücum gücün artar, savunman biraz zayıflar.",defense:"Savunman güçlenir, gol bulmak zorlaşır.",possession:"Orta saha kontrolün artar.",balanced:"Takım dengeli oynar."};
- $("tacticInfo").textContent=state.formation+" · "+bonus[state.style];
-}
-function strength(){let n=state.players.reduce((a,p)=>a+p.rating,0)/state.players.length;
- if(state.style==="attack")n+=1.5;if(state.style==="defense")n+=0.8;if(state.style==="possession")n+=1.2;
- if(state.formation==="4-2-3-1")n+=0.5;return n}
-function nextOpponent() {
-  if (!state || state.played >= 38) return "-";
-
-  const games = state.fixtures[state.played];
-  const game = games.find(
-    match => match.home === state.club || match.away === state.club
-  );
-
-  return game
-    ? (game.home === state.club ? game.away : game.home)
-    : "-";
-}
-function playMatch() {
-  if (state.played >= 38) {
-    msg("Sezon bitti! Yeni kariyer başlatabilirsin.");
-    return;
-  }
-
-  const myStrength = strength();
-  const round = state.fixtures[state.played];
-  let myResult = "";
-  let myGoals = 0;
-  let oppGoals = 0;
-
-  for (const game of round) {
-    const homeTeam = state.teams.find(t => t.name === game.home);
-    const awayTeam = state.teams.find(t => t.name === game.away);
-
-    const homeStrength = game.home === state.club
-      ? myStrength
-      : homeTeam.base;
-
-    const awayStrength = game.away === state.club
-      ? myStrength
-      : awayTeam.base;
-
-    const homeGoals = Math.max(0, Math.min(6,
-      Math.round(Math.random() * 2 + (homeStrength - awayStrength + 2) / 8)
-    ));
-
-    const awayGoals = Math.max(0, Math.min(5,
-      Math.round(Math.random() * 2 + (awayStrength - homeStrength) / 8)
-    ));
-
-    applyResult(homeTeam, homeGoals, awayGoals);
-    applyResult(awayTeam, awayGoals, homeGoals);
-
-    if (game.home === state.club || game.away === state.club) {
-      myGoals = game.home === state.club ? homeGoals : awayGoals;
-      oppGoals = game.home === state.club ? awayGoals : homeGoals;
-
-      const opponentName = game.home === state.club
-        ? game.away
-        : game.home;
-
-      myResult = `${state.club} ${myGoals} - ${oppGoals} ${opponentName}`;
-    }
-  }
-
-  const scorers = state.players.filter(
-    p => ["SF", "SLK", "SĞK", "MO"].includes(p.pos)
-  );
-
-  for (let i = 0; i < myGoals; i++) {
-    const player = scorers[Math.floor(Math.random() * scorers.length)];
-    if (player) player.goals++;
-  }
-
-  state.history.unshift(myResult);
-  state.history = state.history.slice(0, 8);
-  state.played++;
-  state.week = state.played + 1;
-
-  state.budget += myGoals * 150000 - oppGoals * 50000;
-
-  update();
-
-  if (state.played === 38) {
-    const rank = [...state.teams]
-      .sort((a, b) =>
-        b.pts - a.pts ||
-        (b.gf - b.ga) - (a.gf - a.ga) ||
-        b.gf - a.gf
-      )
-      .findIndex(t => t.name === state.club) + 1;
-
-    msg(`Sezon bitti! Ligi ${rank}. sırada tamamladın.`);
-  } else {
-    msg(myResult);
-  }
-}
-function applyResult(t,gf,ga){t.played++;t.gf+=gf;t.ga+=ga;if(gf>ga){t.w++;t.pts+=3}else if(gf===ga){t.d++;t.pts++}else t.l++}
-function update(){
- $("clubTitle").textContent="🏟️ "+state.club;
- $("budget").textContent=money(state.budget);
- $("played").textContent=state.played;
- $("week").textContent=state.week;
- const rank=[...state.teams].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)).findIndex(t=>t.name===state.club)+1;
- $("rank").textContent=rank+".";
- $("nextMatch").textContent=state.played>=38?"Sezon tamamlandı!":"Sıradaki maç: "+state.club+" - "+nextOpponent();
- $("formInfo").textContent="Takım gücü: "+strength().toFixed(1)+" · Diziliş: "+state.formation;
- $("history").innerHTML=state.history.length?state.history.map(x=>"<p>"+x+"</p>").join(""):"Henüz maç oynanmadı.";
- $("squadRows").innerHTML=state.players.map(p=>`<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.age}</td><td>${p.rating}</td><td>${money(p.value)}</td><td>${money(p.wage)}</td></tr>`).join("");
- renderMarket();renderLeague();updateTactics();
-}
-function renderMarket(){
- $("marketRows").innerHTML=marketPlayers.map((p,i)=>`<div class="player"><strong>${p.name}</strong><div>${p.pos} · ${p.age} yaş · GEN ${p.rating}</div><p>Değer: ${money(p.value)}</p><p>Maaş: ${money(p.wage)}/hafta</p><button class="primary" onclick="buyPlayer(${i})" ${state.budget<p.value?"disabled":""}>Transfer et</button></div>`).join("");
-}
-function buyPlayer(i){
- const p=marketPlayers[i];if(state.budget<p.value){msg("Bütçe yetersiz!");return}
- state.budget-=p.value;
- state.players.push({...p,goals:0,assists:0});
- marketPlayers.splice(i,1);
- update();msg(p.name+" transfer edildi!");
-}
-function renderLeague(){
- if(!state)return;
- const sorted=[...state.teams].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
- $("leagueRows").innerHTML=sorted.map((t,i)=>`<tr><td>${i+1}</td><td>${t.name}</td><td>${t.played}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf-t.ga}</td><td><strong>${t.pts}</strong></td></tr>`).join("");
-}
-function saveGame(){
- if(!state)return;
- try{localStorage.setItem("fm2026save",JSON.stringify(state));msg("Kariyer bu tarayıcıya kaydedildi!")}catch(e){msg("Kayıt yapılamadı.")}
-}
-function resetGame(){
- if(confirm("Mevcut kariyer silinsin ve yeni kariyer başlasın?")){
- try{localStorage.removeItem("fm2026save")}catch(e){}
- $("game").classList.add("hidden");$("setup").classList.remove("hidden");state=null;msg("");
- }
-}
-try{
- const saved=localStorage.getItem("fm2026save");
- if(saved){state=JSON.parse(saved);$("setup").classList.add("hidden");$("game").classList.remove("hidden");update();showTab("home")}
-}catch(e){}
-</script>
-</body>
-</html>
+        const DX = [1, 0, -1, 0];
+        const DY = [0, 1, 0, -
+```
