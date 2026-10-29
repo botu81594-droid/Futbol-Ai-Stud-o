@@ -48,11 +48,27 @@ footer{text-align:center;padding:25px;color:#8195ad}
   <h2>🏟️ Kariyerini başlat</h2>
   <p>Yönetmek istediğin kulübü seç.</p>
   <select id="clubChoice">
-    <option value="Fenerbahçe">Fenerbahçe</option>
-    <option value="Galatasaray">Galatasaray</option>
-    <option value="Beşiktaş">Beşiktaş</option>
-    <option value="Trabzonspor">Trabzonspor</option>
-    <option value="Anadolu FK">Anadolu FK</option>
+  <option>Fenerbahçe</option>
+  <option>Galatasaray</option>
+  <option>Beşiktaş</option>
+  <option>Trabzonspor</option>
+  <option>Başakşehir</option>
+  <option>Samsunspor</option>
+  <option>Göztepe</option>
+  <option>Konyaspor</option>
+  <option>Alanyaspor</option>
+  <option>Antalyaspor</option>
+  <option>Çaykur Rizespor</option>
+  <option>Gaziantep FK</option>
+  <option>Kayserispor</option>
+  <option>Kasımpaşa</option>
+  <option>Eyüpspor</option>
+  <option>Gençlerbirliği</option>
+  <option>Bursaspor</option>
+  <option>Anadolu FK</option>
+  <option>İstanbulspor</option>
+  <option>Sakaryaspor</option>
+</select>
   </select>
   <button class="primary" onclick="startGame()">Kariyere başla</button>
   <p class="muted">Bu ilk sürümde kulüp ve oyuncu verileri oyun amaçlıdır.</p>
@@ -158,15 +174,77 @@ const marketPlayers = [
 const clubNames = ["Fenerbahçe", "Galatasaray", "Beşiktaş", "Trabzonspor", "Başakşehir", "Samsunspor", "Göztepe", "Konyaspor", "Alanyaspor", "Antalyaspor", "Çaykur Rizespor", "Gaziantep FK", "Kayserispor", "Kasımpaşa", "Eyüpspor", "Gençlerbirliği", "Bursaspor", "Anadolu FK", "İstanbulspor", "Sakaryaspor"
 ];
 let state=null;
+function buildFixtures() {
+  const rotation = [...clubNames];
+  const firstHalf = [];
+  const n = rotation.length;
 
+  for (let round = 0; round < n - 1; round++) {
+    const games = [];
+
+    for (let i = 0; i < n / 2; i++) {
+      let home = rotation[i];
+      let away = rotation[n - 1 - i];
+
+      if ((round + i) % 2 !== 0) {
+        [home, away] = [away, home];
+      }
+
+      games.push({ home, away });
+    }
+
+    firstHalf.push(games);
+
+    // İlk takımı sabit tutup diğerlerini döndür.
+    rotation.splice(1, 0, rotation.pop());
+  }
+
+  const secondHalf = firstHalf.map(games =>
+    games.map(({ home, away }) => ({
+      home: away,
+      away: home
+    }))
+  );
+
+  return [...firstHalf, ...secondHalf];
+}
 function money(n){return "€"+Math.round(n).toLocaleString("tr-TR")}
 function newTeam(){return initialNames.map(p=>({name:p[0],pos:p[1],age:p[2],rating:p[3],value:p[4]*1000000,wage:p[4]*12000,goals:0,assists:0}))}
-function startGame(){
- const club=$("clubChoice").value;
- state={club,budget:30000000,week:1,played:0,formation:"4-3-3",style:"balanced",
- players:newTeam(),history:[],teams:clubNames.map((name,i)=>({name,played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,base: i===clubNames.indexOf(club)?76:72+Math.floor(Math.random()*5)}))};
- $("setup").classList.add("hidden");$("game").classList.remove("hidden");
- update();showTab("home");msg("Kariyer başladı! Başarılar hocam.");
+function startGame() {
+  const club = $("clubChoice").value;
+
+  state = {
+    club,
+    budget: 30000000,
+    week: 1,
+    played: 0,
+    formation: "4-3-3",
+    style: "balanced",
+    players: newTeam(),
+    history: [],
+    fixtures: buildFixtures(),
+    teams: clubNames.map((name, i) => ({
+      name,
+      played: 0,
+      w: 0,
+      d: 0,
+      l: 0,
+      gf: 0,
+      ga: 0,
+      pts: 0,
+      base: name === club
+        ? 76
+        : 70 + Math.floor(Math.random() * 9)
+    }))
+  };
+
+  $("setup").classList.add("hidden");
+  $("game").classList.remove("hidden");
+
+  update();
+  showTab("home");
+  msg("Kariyer başladı! Başarılar hocam.");
+}
 }
 function msg(s){$("message").textContent=s}
 function showTab(id){document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");if(id==="league")renderLeague()}
@@ -180,24 +258,96 @@ function updateTactics(){
 function strength(){let n=state.players.reduce((a,p)=>a+p.rating,0)/state.players.length;
  if(state.style==="attack")n+=1.5;if(state.style==="defense")n+=0.8;if(state.style==="possession")n+=1.2;
  if(state.formation==="4-2-3-1")n+=0.5;return n}
-function nextOpponent(){
- let names=state.teams.filter(t=>t.name!==state.club);
- return names[(state.week-1)%names.length].name;
+function nextOpponent() {
+  if (!state || state.played >= 38) return "-";
+
+  const games = state.fixtures[state.played];
+  const game = games.find(
+    match => match.home === state.club || match.away === state.club
+  );
+
+  return game
+    ? (game.home === state.club ? game.away : game.home)
+    : "-";
 }
-function playMatch(){
- if(state.played>=state.teams.length*2-2){msg("Sezon bitti! Yeni kariyer başlatabilirsin.");return}
- const mine=state.teams.find(t=>t.name===state.club);
- const opponent=state.teams.find(t=>t.name===nextOpponent());
- const myStrength=strength(),oppStrength=opponent.base;
- const myGoals=Math.max(0,Math.min(6,Math.round(Math.random()*2+(myStrength-oppStrength)/8)));
- const oppGoals=Math.max(0,Math.min(5,Math.round(Math.random()*2+(oppStrength-myStrength)/8)));
- applyResult(mine,myGoals,oppGoals);applyResult(opponent,oppGoals,myGoals);
- const scorers=state.players.filter(p=>["SF","SLK","SĞK","MO"].includes(p.pos));
- for(let i=0;i<myGoals;i++){let p=scorers[Math.floor(Math.random()*scorers.length)];if(p)p.goals++}
- const result=`${state.club} ${myGoals} - ${oppGoals} ${opponent.name}`;
- state.history.unshift(result);state.history=state.history.slice(0,8);
- state.played++;state.week++;state.budget+=myGoals*150000-oppGoals*50000;
- update();msg(result);
+function playMatch() {
+  if (state.played >= 38) {
+    msg("Sezon bitti! Yeni kariyer başlatabilirsin.");
+    return;
+  }
+
+  const myStrength = strength();
+  const round = state.fixtures[state.played];
+  let myResult = "";
+  let myGoals = 0;
+  let oppGoals = 0;
+
+  for (const game of round) {
+    const homeTeam = state.teams.find(t => t.name === game.home);
+    const awayTeam = state.teams.find(t => t.name === game.away);
+
+    const homeStrength = game.home === state.club
+      ? myStrength
+      : homeTeam.base;
+
+    const awayStrength = game.away === state.club
+      ? myStrength
+      : awayTeam.base;
+
+    const homeGoals = Math.max(0, Math.min(6,
+      Math.round(Math.random() * 2 + (homeStrength - awayStrength + 2) / 8)
+    ));
+
+    const awayGoals = Math.max(0, Math.min(5,
+      Math.round(Math.random() * 2 + (awayStrength - homeStrength) / 8)
+    ));
+
+    applyResult(homeTeam, homeGoals, awayGoals);
+    applyResult(awayTeam, awayGoals, homeGoals);
+
+    if (game.home === state.club || game.away === state.club) {
+      myGoals = game.home === state.club ? homeGoals : awayGoals;
+      oppGoals = game.home === state.club ? awayGoals : homeGoals;
+
+      const opponentName = game.home === state.club
+        ? game.away
+        : game.home;
+
+      myResult = `${state.club} ${myGoals} - ${oppGoals} ${opponentName}`;
+    }
+  }
+
+  const scorers = state.players.filter(
+    p => ["SF", "SLK", "SĞK", "MO"].includes(p.pos)
+  );
+
+  for (let i = 0; i < myGoals; i++) {
+    const player = scorers[Math.floor(Math.random() * scorers.length)];
+    if (player) player.goals++;
+  }
+
+  state.history.unshift(myResult);
+  state.history = state.history.slice(0, 8);
+  state.played++;
+  state.week = state.played + 1;
+
+  state.budget += myGoals * 150000 - oppGoals * 50000;
+
+  update();
+
+  if (state.played === 38) {
+    const rank = [...state.teams]
+      .sort((a, b) =>
+        b.pts - a.pts ||
+        (b.gf - b.ga) - (a.gf - a.ga) ||
+        b.gf - a.gf
+      )
+      .findIndex(t => t.name === state.club) + 1;
+
+    msg(`Sezon bitti! Ligi ${rank}. sırada tamamladın.`);
+  } else {
+    msg(myResult);
+  }
 }
 function applyResult(t,gf,ga){t.played++;t.gf+=gf;t.ga+=ga;if(gf>ga){t.w++;t.pts+=3}else if(gf===ga){t.d++;t.pts++}else t.l++}
 function update(){
@@ -207,7 +357,7 @@ function update(){
  $("week").textContent=state.week;
  const rank=[...state.teams].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)).findIndex(t=>t.name===state.club)+1;
  $("rank").textContent=rank+".";
- $("nextMatch").textContent=state.played>=state.teams.length*2-2?"Sezon tamamlandı!":"Sıradaki maç: "+state.club+" - "+nextOpponent();
+ $("nextMatch").textContent=state.played>=38?"Sezon tamamlandı!":"Sıradaki maç: "+state.club+" - "+nextOpponent();
  $("formInfo").textContent="Takım gücü: "+strength().toFixed(1)+" · Diziliş: "+state.formation;
  $("history").innerHTML=state.history.length?state.history.map(x=>"<p>"+x+"</p>").join(""):"Henüz maç oynanmadı.";
  $("squadRows").innerHTML=state.players.map(p=>`<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.age}</td><td>${p.rating}</td><td>${money(p.value)}</td><td>${money(p.wage)}</td></tr>`).join("");
