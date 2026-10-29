@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Futbol AI Studio - Futbolcular, takımlar, maç sonuçları ve lig puan durumları.">
+<title>Futbol AI Studio</title>
+<style>
+:root{--bg:#0b1220;--panel:#141f30;--green:#27e58b;--muted:#9eacc0;--line:#29364a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f4f7fb;font-family:Arial,sans-serif}
+header{background:#101a2a;border-bottom:1px solid var(--line);padding:18px 6%;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.logo{font-size:23px;font-weight:900}.logo span{color:var(--green)}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+button,input{font:inherit}
+nav button,.action{background:#202d40;border:1px solid var(--line);color:white;padding:10px 14px;border-radius:8px;cursor:pointer}
+nav button:hover,.action:hover{background:#29405a}
+.hero{padding:55px 6% 35px;background:linear-gradient(120deg,#102c2a,#101a2a 65%)}
+.hero h1{font-size:clamp(30px,5vw,52px);margin:0 0 12px}
+.hero h1 span{color:var(--green)}
+.hero p{color:#c0cbd8;max-width:600px;line-height:1.6}
+.search{display:flex;gap:8px;max-width:650px;margin-top:22px}
+.search input{flex:1;min-width:0;padding:14px;border-radius:8px;border:1px solid var(--line);background:#0b1220;color:white}
+main{padding:28px 6%;max-width:1400px;margin:auto}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+h2{font-size:23px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px}
+.card{background:var(--panel);border:1px solid var(--line);padding:20px;border-radius:12px}
+.stat{font-size:28px;color:var(--green);font-weight:bold;margin:10px 0}
+.muted{color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tabs button{background:transparent;color:#c7d2e1;border:1px solid var(--line);padding:10px 14px;border-radius:8px;cursor:pointer}
+.tabs button.active{background:var(--green);color:#07150e;border-color:var(--green);font-weight:bold}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:12px;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+.table-wrap{overflow-x:auto}
+.tag{display:inline-block;background:#203b32;color:var(--green);padding:5px 8px;border-radius:6px;font-size:12px}
+.player-name{font-weight:bold}
+footer{border-top:1px solid var(--line);padding:25px 6%;color:var(--muted);text-align:center;margin-top:30px}
+.notice{font-size:12px;color:#e7c783;margin-top:15px}
+.hidden{display:none}
+@media(max-width:600px){header{padding:16px 5%}.hero{padding:38px 5%}main{padding:22px 5%}.search{flex-direction:column}.search button{padding:13px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">FUTBOL <span>AI</span> STUDIO</div>
+  <nav>
+    <button onclick="showSection('home')">Ana Sayfa</button>
+    <button onclick="showSection('players')">Futbolcular</button>
+    <button onclick="showSection('teams')">Takımlar</button>
+    <button onclick="showSection('matches')">Maçlar</button>
+    <button onclick="showSection('league')">Puan Durumu</button>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <div class="tag">⚽ FUTBOLUN VERİ MERKEZİ</div>
+  <h1>Futbol dünyasını<br><span>keşfet.</span></h1>
+  <p>Futbolcuları araştır, takımları incele, maç sonuçlarını takip et ve lig sıralamalarına göz at.</p>
+  <div class="search">
+    <input id="searchInput" placeholder="Futbolcu veya takım ara..." onkeydown="if(event.key==='Enter')searchSite()">
+    <button class="action" onclick="searchSite()">Ara ↗</button>
+  </div>
+</section>
+
+<main>
+<section id="dashboard">
+  <div class="section-title"><h2>Genel Bakış</h2><span class="tag">DEMO VERİLER</span></div>
+  <div class="cards">
+    <div class="card"><div class="muted">Futbolcu</div><div class="stat" id="playerCount">6</div><div class="muted">Örnek oyuncu profilleri</div></div>
+    <div class="card"><div class="muted">Takım</div><div class="stat" id="teamCount">4</div><div class="muted">Örnek takımlar</div></div>
+    <div class="card"><div class="muted">Maç</div><div class="stat" id="matchCount">3</div><div class="muted">Örnek sonuçlar</div></div>
+    <div class="card"><div class="muted">Lig</div><div class="stat">1</div><div class="muted">Örnek lig tablosu</div></div>
+  </div>
+</section>
+
+<section id="players" class="hidden">
+  <div class="section-title"><h2>Futbolcu Profilleri</h2><span class="muted">Örnek veriler</span></div>
+  <div class="panel table-wrap"><table><thead><tr><th>Oyuncu</th><th>Yaş</th><th>Ülke</th><th>Mevki</th><th>Puan</th></tr></thead><tbody id="playerRows"></tbody></table></div>
+</section>
+
+<section id="teams" class="hidden">
+  <h2>Takımlar</h2><div class="cards" id="teamCards"></div>
+</section>
+
+<section id="matches" class="hidden">
+  <h2>Maç Sonuçları</h2>
+  <div class="panel table-wrap"><table><thead><tr><th>Tarih</th><th>Ev Sahibi</th><th>Skor</th><th>Deplasman</th></tr></thead><tbody id="matchRows"></tbody></table></div>
+</section>
+
+<section id="league" class="hidden">
+  <h2>Lig Puan Durumu</h2>
+  <div class="panel table-wrap"><table><thead><tr><th>#</th><th>Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AV</th><th>P</th></tr></thead><tbody id="leagueRows"></tbody></table></div>
+</section>
+
+<section id="searchResults" class="hidden">
+  <h2>Arama Sonuçları</h2><div id="results" class="cards"></div>
+</section>
+<p class="notice">Not: Bu sürüm örnek veriler kullanır. Gerçek ve güncel futbol verilerine bağlı değildir.</p>
+</main>
+
+<footer>© 2026 Futbol AI Studio · Futbol verileri tek adreste.</footer>
+
+<script>
+const players=[
+{name:"Arda Yılmaz",age:22,country:"Türkiye",position:"Orta saha",rating:82,team:"İstanbul FK"},
+{name:"Mert Demir",age:25,country:"Türkiye",position:"Forvet",rating:79,team:"Anadolu SK"},
+{name:"Kerem Kaya",age:21,country:"Türkiye",position:"Kanat",rating:80,team:"İstanbul FK"},
+{name:"Deniz Aslan",age:28,country:"Türkiye",position:"Kaleci",rating:77,team:"Başkent FC"},
+{name:"Can Öztürk",age:24,country:"Türkiye",position:"Defans",rating:78,team:"Karadeniz FK"},
+{name:"Efe Şahin",age:20,country:"Türkiye",position:"Orta saha",rating:75,team:"Anadolu SK"}
+];
+const teams=[
+{name:"İstanbul FK",country:"Türkiye",founded:2005},
+{name:"Anadolu SK",country:"Türkiye",founded:1998},
+{name:"Başkent FC",country:"Türkiye",founded:2010},
+{name:"Karadeniz FK",country:"Türkiye",founded:1987}
+];
+const matches=[
+{date:"25.10.2026",home:"İstanbul FK",score:"2 - 1",away:"Anadolu SK"},
+{date:"24.10.2026",home:"Başkent FC",score:"0 - 0",away:"Karadeniz FK"},
+{date:"23.10.2026",home:"Anadolu SK",score:"1 - 3",away:"Başkent FC"}
+];
+const standings=[
+{team:"İstanbul FK",p:12,w:4,d:0,l:1,gf:10,ga:4},
+{team:"Başkent FC",p:10,w:3,d:1,l:1,gf:8,ga:4},
+{team:"Karadeniz FK",p:4,w:1,d:1,l:3,gf:4,ga:8},
+{team:"Anadolu SK",p:3,w:1,d:0,l:4,gf:5,ga:11}
+];
+function render(){
+document.getElementById("playerRows").innerHTML=players.map(p=>`<tr><td class="player-name">${p.name}</td><td>${p.age}</td><td>${p.country}</td><td>${p.position}</td><td><span class="tag">${p.rating}/99</span></td></tr>`).join("");
+document.getElementById("teamCards").innerHTML=teams.map(t=>`<div class="card"><div class="tag">⚽ TAKIM</div><h3>${t.name}</h3><p class="muted">${t.country}</p><p>Kuruluş: ${t.founded}</p><p>${players.filter(p=>p.team===t.name).length} örnek futbolcu</p></div>`).join("");
+document.getElementById("matchRows").innerHTML=matches.map(m=>`<tr><td>${m.date}</td><td>${m.home}</td><td><strong>${m.score}</strong></td><td>${m.away}</td></tr>`).join("");
+document.getElementById("leagueRows").innerHTML=standings.map((t,i)=>`<tr><td>${i+1}</td><td class="player-name">${t.team}</td><td>${t.w+t.d+t.l}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf-t.ga}</td><td><strong>${t.w*3+t.d}</strong></td></tr>`).join("");
+}
+function showSection(id){
+["dashboard","players","teams","matches","league","searchResults"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+if(id==="home"){document.getElementById("dashboard").classList.remove("hidden");document.getElementById("home").scrollIntoView({behavior:"smooth"});return}
+document.getElementById(id).classList.remove("hidden");
+document.getElementById(id).scrollIntoView({behavior:"smooth",block:"start"});
+}
+function searchSite(){
+const q=document.getElementById("searchInput").value.trim().toLocaleLowerCase("tr");
+const box=document.getElementById("results");
+const foundPlayers=players.filter(p=>(p.name+" "+p.team+" "+p.position+" "+p.country).toLocaleLowerCase("tr").includes(q));
+const foundTeams=teams.filter(t=>(t.name+" "+t.country).toLocaleLowerCase("tr").includes(q));
+document.getElementById("dashboard").classList.add("hidden");
+["players","teams","matches","league"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+document.getElementById("searchResults").classList.remove("hidden");
+box.innerHTML=q?(foundPlayers.map(p=>`<div class="card"><span class="tag">FUTBOLCU</span><h3>${p.name}</h3><p>${p.team}</p><p>${p.position} · ${p.age} yaş</p><strong>${p.rating}/99</strong></div>`).join("")+foundTeams.map(t=>`<div class="card"><span class="tag">TAKIM</span><h3>${t.name}</h3><p>${t.country} · ${t.founded}</p></div>`).join("")):"<p>Aramak istediğin futbolcu veya takımın adını yaz.</p>";
+if(q&&!foundPlayers.length&&!foundTeams.length)box.innerHTML="<p>Sonuç bulunamadı. Başka bir isim dene.</p>";
+document.getElementById("searchResults").scrollIntoView({behavior:"smooth"});
+}
+render();
+</script>
+</body>
+</html>
