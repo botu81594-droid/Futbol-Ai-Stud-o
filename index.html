@@ -3,114 +3,244 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Futbol AI Studio: futbolcu profilleri, kulüpler ve piyasa değerleri.">
-<title>Futbol AI Studio | Futbolcu Verileri</title>
+<title>Futbol Menajeri 2026</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1220;color:#f2f6fc;font-family:Arial,sans-serif}
-header{padding:22px 6%;background:#111c2d;border-bottom:1px solid #29374b}
-.logo{font-size:25px;font-weight:900}.logo span{color:#2de49a}
-header p{color:#9eacc0;margin-bottom:0}
-main{max-width:1100px;margin:auto;padding:25px 5%}
-.hero{padding:25px;background:linear-gradient(120deg,#153e35,#172338);border-radius:15px}
-h1{font-size:clamp(27px,5vw,42px);margin:5px 0 12px}
-.green{color:#2de49a}
-input,select{padding:12px;background:#111c2d;color:white;border:1px solid #35445a;border-radius:8px;width:100%}
-.filters{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:20px}
-h2{margin-top:30px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.card{background:#141f30;border:1px solid #29374b;border-radius:12px;padding:18px}
-.avatar{width:54px;height:54px;display:grid;place-items:center;background:#244538;color:#2de49a;font-size:22px;font-weight:bold;border-radius:50%}
-.top{display:flex;align-items:center;gap:12px}
-.muted{color:#9eacc0;font-size:13px}
-.value{font-size:24px;font-weight:bold;color:#2de49a;margin:15px 0 5px}
-.tag{display:inline-block;background:#203c32;color:#9af4ca;padding:5px 8px;border-radius:6px;font-size:12px}
-.details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
-.details div{background:#0d1726;padding:10px;border-radius:8px}
-button{background:#2de49a;color:#07160e;border:0;border-radius:8px;padding:12px 16px;font-weight:bold;cursor:pointer}
-button.secondary{background:#26364b;color:white}
-.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-footer{text-align:center;color:#9eacc0;padding:25px;border-top:1px solid #29374b;margin-top:30px}
-#profile{display:none}
-small{color:#f0cd83}
-@media(max-width:520px){.filters{grid-template-columns:1fr}.row{align-items:flex-start;flex-direction:column}}
+body{margin:0;background:#0b1220;color:#edf3ff;font-family:Arial,sans-serif}
+header{padding:22px;background:#101c30;border-bottom:2px solid #35d07f}
+header h1{margin:0;color:#43e38b}
+header p{color:#a8b8ce;margin-bottom:0}
+main{max-width:1100px;margin:auto;padding:16px}
+.panel{background:#142238;border:1px solid #283d58;border-radius:14px;padding:17px;margin-bottom:16px}
+h2{margin-top:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+.stat{background:#1d304a;padding:15px;border-radius:10px}
+.stat small{color:#aabbd0;display:block;margin-bottom:8px}
+.stat strong{font-size:21px;color:#4ce69a}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+button,select{background:#243a55;color:white;border:1px solid #45617e;border-radius:8px;padding:11px;cursor:pointer}
+button:hover{background:#315273}
+button.primary{background:#16834d;border:0}
+button:disabled{opacity:.45;cursor:not-allowed}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 7px;border-bottom:1px solid #30445e}
+th{color:#9eb4cc;font-size:13px}
+.tablewrap{overflow-x:auto}
+.tag{color:#4ce69a}
+.muted{color:#a8b8ce}
+.notice{padding:12px;border-radius:8px;background:#1c3047;color:#bcd0e6}
+.playergrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.player{background:#1c3047;padding:13px;border-radius:10px}
+.player strong{display:block;margin-bottom:8px}
+.hidden{display:none}
+#message{min-height:24px;color:#4ce69a}
+input,select{max-width:100%}
+footer{text-align:center;padding:25px;color:#8195ad}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">FUTBOL <span>AI</span> STUDIO ⚽</div>
-  <p>Futbolcular · Kulüpler · Piyasa Değerleri</p>
+  <h1>⚽ FUTBOL MENAJERİ 2026</h1>
+  <p>Kulübünü yönet. Transfer yap. Şampiyon ol.</p>
 </header>
 <main>
-<section class="hero">
-  <span class="tag">FUTBOL VERİ MERKEZİ</span>
-  <h1>Futbolcuları <span class="green">keşfet.</span></h1>
-  <p>Oyuncuları ara, kulüplerini incele ve örnek piyasa değerlerini karşılaştır.</p>
-  <div class="filters">
-    <input id="q" placeholder="Futbolcu veya kulüp ara..." oninput="render()">
-    <select id="pos" onchange="render()">
-      <option value="">Bütün mevkiler</option>
-      <option>Kaleci</option><option>Defans</option>
-      <option>Orta saha</option><option>Kanat</option><option>Forvet</option>
+<section id="setup" class="panel">
+  <h2>🏟️ Kariyerini başlat</h2>
+  <p>Yönetmek istediğin kulübü seç.</p>
+  <select id="clubChoice">
+    <option value="Fenerbahçe">Fenerbahçe</option>
+    <option value="Galatasaray">Galatasaray</option>
+    <option value="Beşiktaş">Beşiktaş</option>
+    <option value="Trabzonspor">Trabzonspor</option>
+    <option value="Anadolu FK">Anadolu FK</option>
+  </select>
+  <button class="primary" onclick="startGame()">Kariyere başla</button>
+  <p class="muted">Bu ilk sürümde kulüp ve oyuncu verileri oyun amaçlıdır.</p>
+</section>
+
+<div id="game" class="hidden">
+  <section class="panel">
+    <h2 id="clubTitle">Kulübüm</h2>
+    <div class="stats">
+      <div class="stat"><small>Bütçe</small><strong id="budget">€0</strong></div>
+      <div class="stat"><small>Lig sırası</small><strong id="rank">-</strong></div>
+      <div class="stat"><small>Oynanan maç</small><strong id="played">0</strong></div>
+      <div class="stat"><small>Hafta</small><strong id="week">1</strong></div>
+    </div>
+  </section>
+  <nav>
+    <button onclick="showTab('home')">Genel Bakış</button>
+    <button onclick="showTab('squad')">Kadro</button>
+    <button onclick="showTab('market')">Transfer</button>
+    <button onclick="showTab('tactics')">Taktik</button>
+    <button onclick="showTab('league')">Lig Tablosu</button>
+  </nav>
+  <p id="message"></p>
+
+  <section id="home" class="panel tab">
+    <h2>📋 Kulüp merkezi</h2>
+    <p id="nextMatch"></p>
+    <p id="formInfo" class="muted"></p>
+    <button class="primary" onclick="playMatch()">⚽ Maçı oyna</button>
+    <button onclick="saveGame()">💾 Oyunu kaydet</button>
+    <button onclick="resetGame()">Yeni kariyer</button>
+    <h3>Son maçlar</h3>
+    <div id="history"></div>
+  </section>
+
+  <section id="squad" class="panel tab hidden">
+    <h2>👥 Takım kadrosu</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Oyuncu</th><th>Mevki</th><th>Yaş</th><th>GEN</th><th>Değer</th><th>Maaş/hafta</th></tr></thead>
+      <tbody id="squadRows"></tbody>
+    </table></div>
+  </section>
+
+  <section id="market" class="panel tab hidden">
+    <h2>🔄 Transfer pazarı</h2>
+    <p class="muted">Bir oyuncu alarak kadronu güçlendir. Bütçeni kontrol et!</p>
+    <div id="marketRows" class="playergrid"></div>
+  </section>
+
+  <section id="tactics" class="panel tab hidden">
+    <h2>🧠 Teknik direktör</h2>
+    <label for="formation">Diziliş: </label>
+    <select id="formation" onchange="setFormation(this.value)">
+      <option>4-3-3</option><option>4-4-2</option><option>4-2-3-1</option>
     </select>
-  </div>
-</section>
+    <br><br>
+    <label for="style">Oyun planı: </label>
+    <select id="style" onchange="setStyle(this.value)">
+      <option value="balanced">Dengeli</option>
+      <option value="attack">Hücum</option>
+      <option value="defense">Savunma</option>
+      <option value="possession">Topa sahip olma</option>
+    </select>
+    <p id="tacticInfo" class="notice"></p>
+    <p class="muted">Taktik seçimin maç simülasyonunu etkiler.</p>
+  </section>
 
-<div class="row">
-  <h2>Futbolcu Profilleri</h2>
-  <span id="count" class="tag">0 futbolcu</span>
+  <section id="league" class="panel tab hidden">
+    <h2>🏆 Lig tablosu</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>#</th><th>Kulüp</th><th>O</th><th>G</th><th>B</th><th>M</th><th>A</th><th>P</th></tr></thead>
+      <tbody id="leagueRows"></tbody>
+    </table></div>
+  </section>
 </div>
-<div id="players" class="cards"></div>
-
-<section id="profile">
-  <h2>Oyuncu Detayları</h2>
-  <div id="profileContent" class="card"></div>
-  <button class="secondary" onclick="closeProfile()">← Listeye dön</button>
-</section>
-
-<p class="muted">Bilgilendirme: Bu listedeki piyasa değerleri ve oyuncu kayıtları örnek amaçlıdır; gerçek veya güncel Transfermarkt verileri değildir.</p>
 </main>
-<footer>© 2026 Futbol AI Studio</footer>
+<footer>Futbol Menajeri 2026 · Taraftar yapımı demo oyun</footer>
+
 <script>
-const players=[
-{name:"Arda Yılmaz",age:22,country:"Türkiye",position:"Orta saha",club:"İstanbul FK",value:8500000,number:10},
-{name:"Mert Demir",age:25,country:"Türkiye",position:"Forvet",club:"Anadolu SK",value:6200000,number:9},
-{name:"Kerem Kaya",age:21,country:"Türkiye",position:"Kanat",club:"İstanbul FK",value:7000000,number:7},
-{name:"Deniz Aslan",age:28,country:"Türkiye",position:"Kaleci",club:"Başkent FC",value:1800000,number:1},
-{name:"Can Öztürk",age:24,country:"Türkiye",position:"Defans",club:"Karadeniz FK",value:4100000,number:4},
-{name:"Efe Şahin",age:20,country:"Türkiye",position:"Orta saha",club:"Anadolu SK",value:5300000,number:8},
-{name:"Emir Aydın",age:19,country:"Türkiye",position:"Forvet",club:"Başkent FC",value:2500000,number:11},
-{name:"Ali Yıldız",age:26,country:"Türkiye",position:"Defans",club:"Karadeniz FK",value:3200000,number:3}
+const $ = id => document.getElementById(id);
+const initialNames = [
+ ["Mert Kaleci","KL",24,74,0.9],
+ ["Emir Sağbek","SLB",22,70,0.6],
+ ["Kaan Stoper","STP",26,75,1.0],
+ ["Efe Stoper","STP",23,73,0.8],
+ ["Arda Solbek","SĞB",21,71,0.7],
+ ["Deniz Orta","MO",25,76,1.1],
+ ["Can Oyun Kurucu","MO",22,78,1.4],
+ ["Yiğit Orta","MO",27,74,1.0],
+ ["Bora Kanat","SLK",20,77,1.2],
+ ["Kerem Forvet","SF",24,80,1.7],
+ ["Umut Kanat","SĞK",23,75,1.0],
+ ["Ali Yedek","MO",19,68,0.4]
 ];
-function money(n){
-if(n>=1000000)return "€"+(n/1000000).toLocaleString("tr-TR",{maximumFractionDigits:1})+" mil.";
-return "€"+(n/1000).toLocaleString("tr-TR")+" bin";
+const marketPlayers = [
+ {name:"Baran Yıldız",pos:"SF",age:21,rating:79,value:8500000,wage:65000},
+ {name:"Eren Demir",pos:"MO",age:23,rating:77,value:6200000,wage:50000},
+ {name:"Mete Kaya",pos:"STP",age:25,rating:76,value:5500000,wage:45000},
+ {name:"Ozan Aslan",pos:"KL",age:20,rating:74,value:4200000,wage:35000},
+ {name:"Sarp Arslan",pos:"SLK",age:22,rating:78,value:7200000,wage:60000},
+ {name:"Berk Aydın",pos:"SĞB",age:24,rating:75,value:4800000,wage:40000}
+];
+const clubNames=["Fenerbahçe","Galatasaray","Beşiktaş","Trabzonspor","Anadolu FK"];
+let state=null;
+
+function money(n){return "€"+Math.round(n).toLocaleString("tr-TR")}
+function newTeam(){return initialNames.map(p=>({name:p[0],pos:p[1],age:p[2],rating:p[3],value:p[4]*1000000,wage:p[4]*12000,goals:0,assists:0}))}
+function startGame(){
+ const club=$("clubChoice").value;
+ state={club,budget:30000000,week:1,played:0,formation:"4-3-3",style:"balanced",
+ players:newTeam(),history:[],teams:clubNames.map((name,i)=>({name,played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,base: i===clubNames.indexOf(club)?76:72+Math.floor(Math.random()*5)}))};
+ $("setup").classList.add("hidden");$("game").classList.remove("hidden");
+ update();showTab("home");msg("Kariyer başladı! Başarılar hocam.");
 }
-function render(){
-const q=document.getElementById("q").value.toLocaleLowerCase("tr-TR");
-const pos=document.getElementById("pos").value;
-const filtered=players.filter(p=>(p.name+" "+p.club+" "+p.country).toLocaleLowerCase("tr-TR").includes(q)&&(!pos||p.position===pos));
-document.getElementById("count").textContent=filtered.length+" futbolcu";
-document.getElementById("players").innerHTML=filtered.map(p=>`
-<article class="card">
-<div class="top"><div class="avatar">${p.number}</div><div><strong>${p.name}</strong><div class="muted">${p.position}</div></div></div>
-<div class="value">${money(p.value)}</div>
-<div class="muted">Örnek piyasa değeri</div>
-<div class="details"><div><div class="muted">Yaş</div><strong>${p.age}</strong></div><div><div class="muted">Ülke</div><strong>${p.country}</strong></div><div><div class="muted">Kulüp</div><strong>${p.club}</strong></div><div><div class="muted">Forma no.</div><strong>${p.number}</strong></div></div>
-<p><button onclick="openProfile(${p.number})">Profili görüntüle</button></p>
-</article>`).join("")||"<p>Aramana uygun futbolcu bulunamadı.</p>";
+function msg(s){$("message").textContent=s}
+function showTab(id){document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");if(id==="league")renderLeague()}
+function setFormation(v){state.formation=v;updateTactics()}
+function setStyle(v){state.style=v;updateTactics()}
+function updateTactics(){
+ $("formation").value=state.formation;$("style").value=state.style;
+ const bonus={attack:"Hücum gücün artar, savunman biraz zayıflar.",defense:"Savunman güçlenir, gol bulmak zorlaşır.",possession:"Orta saha kontrolün artar.",balanced:"Takım dengeli oynar."};
+ $("tacticInfo").textContent=state.formation+" · "+bonus[state.style];
 }
-function openProfile(number){
-const p=players.find(x=>x.number===number);
-document.getElementById("profileContent").innerHTML=`
-<div class="top"><div class="avatar">${p.number}</div><div><h3>${p.name}</h3><span class="tag">${p.position}</span></div></div>
-<div class="value">${money(p.value)}</div><p class="muted">Örnek piyasa değeri · Resmî değer değildir.</p>
-<div class="details"><div>Yaş: <strong>${p.age}</strong></div><div>Ülke: <strong>${p.country}</strong></div><div>Kulüp: <strong>${p.club}</strong></div><div>Forma no.: <strong>${p.number}</strong></div></div>`;
-document.getElementById("profile").style.display="block";
-document.getElementById("profile").scrollIntoView({behavior:"smooth"});
+function strength(){let n=state.players.reduce((a,p)=>a+p.rating,0)/state.players.length;
+ if(state.style==="attack")n+=1.5;if(state.style==="defense")n+=0.8;if(state.style==="possession")n+=1.2;
+ if(state.formation==="4-2-3-1")n+=0.5;return n}
+function nextOpponent(){
+ let names=state.teams.filter(t=>t.name!==state.club);
+ return names[(state.week-1)%names.length].name;
 }
-function closeProfile(){document.getElementById("profile").style.display="none"}
-render();
+function playMatch(){
+ if(state.played>=state.teams.length*2-2){msg("Sezon bitti! Yeni kariyer başlatabilirsin.");return}
+ const mine=state.teams.find(t=>t.name===state.club);
+ const opponent=state.teams.find(t=>t.name===nextOpponent());
+ const myStrength=strength(),oppStrength=opponent.base;
+ const myGoals=Math.max(0,Math.min(6,Math.round(Math.random()*2+(myStrength-oppStrength)/8)));
+ const oppGoals=Math.max(0,Math.min(5,Math.round(Math.random()*2+(oppStrength-myStrength)/8)));
+ applyResult(mine,myGoals,oppGoals);applyResult(opponent,oppGoals,myGoals);
+ const scorers=state.players.filter(p=>["SF","SLK","SĞK","MO"].includes(p.pos));
+ for(let i=0;i<myGoals;i++){let p=scorers[Math.floor(Math.random()*scorers.length)];if(p)p.goals++}
+ const result=`${state.club} ${myGoals} - ${oppGoals} ${opponent.name}`;
+ state.history.unshift(result);state.history=state.history.slice(0,8);
+ state.played++;state.week++;state.budget+=myGoals*150000-oppGoals*50000;
+ update();msg(result);
+}
+function applyResult(t,gf,ga){t.played++;t.gf+=gf;t.ga+=ga;if(gf>ga){t.w++;t.pts+=3}else if(gf===ga){t.d++;t.pts++}else t.l++}
+function update(){
+ $("clubTitle").textContent="🏟️ "+state.club;
+ $("budget").textContent=money(state.budget);
+ $("played").textContent=state.played;
+ $("week").textContent=state.week;
+ const rank=[...state.teams].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)).findIndex(t=>t.name===state.club)+1;
+ $("rank").textContent=rank+".";
+ $("nextMatch").textContent=state.played>=state.teams.length*2-2?"Sezon tamamlandı!":"Sıradaki maç: "+state.club+" - "+nextOpponent();
+ $("formInfo").textContent="Takım gücü: "+strength().toFixed(1)+" · Diziliş: "+state.formation;
+ $("history").innerHTML=state.history.length?state.history.map(x=>"<p>"+x+"</p>").join(""):"Henüz maç oynanmadı.";
+ $("squadRows").innerHTML=state.players.map(p=>`<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.age}</td><td>${p.rating}</td><td>${money(p.value)}</td><td>${money(p.wage)}</td></tr>`).join("");
+ renderMarket();renderLeague();updateTactics();
+}
+function renderMarket(){
+ $("marketRows").innerHTML=marketPlayers.map((p,i)=>`<div class="player"><strong>${p.name}</strong><div>${p.pos} · ${p.age} yaş · GEN ${p.rating}</div><p>Değer: ${money(p.value)}</p><p>Maaş: ${money(p.wage)}/hafta</p><button class="primary" onclick="buyPlayer(${i})" ${state.budget<p.value?"disabled":""}>Transfer et</button></div>`).join("");
+}
+function buyPlayer(i){
+ const p=marketPlayers[i];if(state.budget<p.value){msg("Bütçe yetersiz!");return}
+ state.budget-=p.value;
+ state.players.push({...p,goals:0,assists:0});
+ marketPlayers.splice(i,1);
+ update();msg(p.name+" transfer edildi!");
+}
+function renderLeague(){
+ if(!state)return;
+ const sorted=[...state.teams].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
+ $("leagueRows").innerHTML=sorted.map((t,i)=>`<tr><td>${i+1}</td><td>${t.name}</td><td>${t.played}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf-t.ga}</td><td><strong>${t.pts}</strong></td></tr>`).join("");
+}
+function saveGame(){
+ if(!state)return;
+ try{localStorage.setItem("fm2026save",JSON.stringify(state));msg("Kariyer bu tarayıcıya kaydedildi!")}catch(e){msg("Kayıt yapılamadı.")}
+}
+function resetGame(){
+ if(confirm("Mevcut kariyer silinsin ve yeni kariyer başlasın?")){
+ try{localStorage.removeItem("fm2026save")}catch(e){}
+ $("game").classList.add("hidden");$("setup").classList.remove("hidden");state=null;msg("");
+ }
+}
+try{
+ const saved=localStorage.getItem("fm2026save");
+ if(saved){state=JSON.parse(saved);$("setup").classList.add("hidden");$("game").classList.remove("hidden");update();showTab("home")}
+}catch(e){}
 </script>
 </body>
 </html>
