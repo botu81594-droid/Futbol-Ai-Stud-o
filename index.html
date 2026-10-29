@@ -212,7 +212,8 @@ function buildFixtures() {
 function money(n){return "€"+Math.round(n).toLocaleString("tr-TR")}
 function newTeam(){return initialNames.map(p=>({name:p[0],pos:p[1],age:p[2],rating:p[3],value:p[4]*1000000,wage:p[4]*12000,goals:0,assists:0}))}
 function startGame() {
-  const club = $("clubChoice").value;
+  const club = $
+("clubChoice").value;
 
   state = {
     club,
