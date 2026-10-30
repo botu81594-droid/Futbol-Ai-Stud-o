@@ -3,76 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retro Penaltı & Serbest Vuruş 2026</title>
+    <title>Penaltı & Serbest Vuruş 2026 - Lig & Rank Sistemli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             touch-action: manipulation;
             user-select: none;
             -webkit-user-select: none;
-            background-color: #0f172a;
+            background-color: #0b1329;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         canvas {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            background: linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+        }
+        .rank-anim {
+            animation: rankPop 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes rankPop {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1.08); filter: drop-shadow(0 0 15px #f59e0b); }
         }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen text-white p-2">
 
-    <!-- Üst Skor & Bilgi Paneli -->
-    <div class="w-full max-w-xl bg-slate-800/80 backdrop-blur rounded-xl p-4 mb-3 border border-slate-700 flex justify-between items-center shadow-lg">
-        <div>
-            <h1 class="text-xl font-extrabold text-emerald-400 tracking-wide">FUTBOL 2026</h1>
-            <p class="text-xs text-slate-400">Penaltı & Serbest Vuruş</p>
+    <!-- Üst Skor, Lig ve Profil Paneli -->
+    <div class="w-full max-w-xl bg-slate-900/90 backdrop-blur rounded-2xl p-4 mb-2 border border-slate-700 flex justify-between items-center shadow-2xl">
+        <div class="flex items-center gap-3">
+            <div id="rankBadge" class="w-12 h-12 rounded-xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center font-black text-amber-300 text-xs text-center p-1 leading-tight shadow-lg shadow-amber-500/20">
+                BRONZ I
+            </div>
+            <div>
+                <h1 id="playerDisplayName" class="text-lg font-black text-white tracking-wide">Oyuncu</h1>
+                <p id="rankNameDisplay" class="text-xs text-amber-400 font-semibold">Bronz I Ligi</p>
+            </div>
         </div>
-        <div class="flex gap-4 text-center">
-            <div class="bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Skor</div>
-                <div id="scoreDisplay" class="text-lg font-black text-amber-400">0</div>
+        <div class="flex gap-3 text-center">
+            <div class="bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">Puan</div>
+                <div id="scoreDisplay" class="text-xl font-black text-emerald-400">0</div>
             </div>
-            <div class="bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">En Yüksek</div>
-                <div id="highScoreDisplay" class="text-lg font-black text-emerald-400">0</div>
-            </div>
-            <div class="bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Seviye</div>
-                <div id="levelDisplay" class="text-lg font-black text-cyan-400">1</div>
-            </div>
+            <button onclick="showLeaderboard()" class="bg-indigo-600/80 hover:bg-indigo-500 px-3 py-1.5 rounded-xl border border-indigo-400 text-xs font-bold transition flex items-center justify-center">
+                🏆 Sıralama
+            </button>
         </div>
     </div>
 
     <!-- Oyun Sahası Canvas -->
     <div class="relative w-full max-w-xl flex justify-center">
-        <canvas id="gameCanvas" width="480" height="600" class="rounded-xl border-2 border-slate-700 w-full max-w-[480px] h-auto cursor-crosshair"></canvas>
+        <canvas id="gameCanvas" width="500" height="620" class="rounded-2xl border-2 border-slate-700 w-full max-w-[500px] h-auto cursor-crosshair"></canvas>
         
-        <!-- Mesaj Ekranı Overlay -->
-        <div id="messageOverlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center transition-all duration-300">
-            <h2 id="msgTitle" class="text-3xl font-black text-emerald-400 mb-2 tracking-wider">ŞUTA HAZIRLAN!</h2>
-            <p id="msgSub" class="text-slate-300 text-sm mb-6 text-center px-6">Topu kaleye doğru sürükleyip bırakarak (swipe) şutunu çek.</p>
-            <button id="startBtn" onclick="startGame()" class="px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95 text-lg uppercase tracking-wider">
-                BAŞLA
+        <!-- Güç Gösterge Barı (%0 - %99) -->
+        <div class="absolute right-4 top-16 w-5 h-48 bg-slate-900/80 border-2 border-slate-600 rounded-full overflow-hidden flex flex-col justify-end p-0.5">
+            <div id="powerFill" class="w-full bg-gradient-to-t from-emerald-500 via-amber-400 to-red-500 rounded-full transition-all duration-75" style="height: 0%;"></div>
+            <div id="powerText" class="absolute -left-10 bottom-0 text-[11px] font-black text-amber-300 bg-slate-900/90 px-1 py-0.5 rounded border border-slate-700">%0</div>
+        </div>
+
+        <!-- Giriş ve İsim Alma Overlay -->
+        <div id="nameOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 z-20">
+            <h2 class="text-3xl font-black text-amber-400 mb-2 tracking-wider text-center">FUTBOL 2026</h2>
+            <p class="text-slate-300 text-xs mb-6 text-center">Liglerde Yüksel, Penaltı Ustası Ol!</p>
+            
+            <input type="text" id="usernameInput" placeholder="Oyuncu Adınızı Girin" class="w-full max-w-xs px-4 py-3 bg-slate-800 border-2 border-slate-600 rounded-xl text-center text-white font-bold mb-4 focus:outline-none focus:border-amber-400">
+            
+            <button onclick="saveNameAndStart()" class="w-full max-w-xs py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95 text-lg uppercase tracking-wider">
+                OYUNA BAŞLA
+            </button>
+        </div>
+
+        <!-- Durum / Mesaj Overlay -->
+        <div id="messageOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hidden z-10">
+            <div id="rankUpIcon" class="hidden mb-3 text-6xl rank-anim">🛡️</div>
+            <h2 id="msgTitle" class="text-3xl font-black text-emerald-400 mb-1 tracking-wider text-center">GOL!</h2>
+            <p id="msgSub" class="text-amber-300 text-sm font-semibold mb-6 text-center px-6">+100 Puan Kazandın!</p>
+            <button id="nextBtn" onclick="resetRound()" class="px-8 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/30 transition transform active:scale-95 text-lg uppercase tracking-wider">
+                DEVAM ET
+            </button>
+        </div>
+
+        <!-- Sıralama Overlay -->
+        <div id="leaderboardOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md rounded-2xl flex flex-col p-6 hidden z-30">
+            <h3 class="text-2xl font-black text-amber-400 mb-4 text-center">🏆 LİDERLİK SIRALAMASI</h3>
+            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1">
+                <!-- Dinamik Liste -->
+            </div>
+            <button onclick="closeLeaderboard()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-600">
+                Kapat
             </button>
         </div>
     </div>
 
-    <!-- Alt İpuçları -->
+    <!-- Alt İpucu -->
     <div class="w-full max-w-xl mt-3 text-center text-xs text-slate-400">
-        💡 <span class="text-slate-300">İpucu:</span> Farenizle veya parmağınızla kalenin içine doğru hızlıca çizgi çekerek şut atın.
+        ⚽ Topa tıkla/sürükle. Sağdaki bar %0-%99 arası değişirken şutunun **tam gücünü** belirler!
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Oyun Durumu Değişkenleri
-        let score = 0;
-        let highScore = localStorage.getItem('fb_highScore') || 0;
-        let level = 1;
-        let gameState = 'START'; // START, AIMING, IN_FLIGHT, GOAL, SAVED, OUT
+        // Lig Sistemi Tanımları (Kağıttaki Tüm Ligler)
+        const RANKS = [
+            { name: "Bronz I", minScore: 0, badge: "🥉 I" },
+            { name: "Bronz II", minScore: 300, badge: "🥉 II" },
+            { name: "Bronz III", minScore: 600, badge: "🥉 III" },
+            { name: "Gümüş I", minScore: 1000, badge: "🥈 I" },
+            { name: "Gümüş II", minScore: 1400, badge: "🥈 II" },
+            { name: "Gümüş III", minScore: 1800, badge: "🥈 III" },
+            { name: "Altın I", minScore: 2300, badge: "🥇 I" },
+            { name: "Altın II", minScore: 2800, badge: "🥇 II" },
+            { name: "Altın III", minScore: 3300, badge: "🥇 III" },
+            { name: "Elmas I", minScore: 3900, badge: "💎 I" },
+            { name: "Elmas II", minScore: 4500, badge: "💎 II" },
+            { name: "Elmas III", minScore: 5100, badge: "💎 III" },
+            { name: "Platin I", minScore: 5800, badge: "🛡️ I" },
+            { name: "Platin II", minScore: 6500, badge: "🛡️ II" },
+            { name: "Platin III", minScore: 7200, badge: "🛡️ III" },
+            { name: "Ultra I", minScore: 8000, badge: "⚡ I" },
+            { name: "Ultra II", minScore: 8900, badge: "⚡ II" },
+            { name: "Ultra III", minScore: 9800, badge: "⚡ III" },
+            { name: "Penaltı Ustası", minScore: 11000, badge: "👑 USTA" }
+        ];
 
-        document.getElementById('highScoreDisplay').innerText = highScore;
+        // Oyuncu Bilgileri
+        let playerName = localStorage.getItem('fb_playerName') || '';
+        let score = parseInt(localStorage.getItem('fb_playerScore')) || 0;
+        let currentRankIndex = 0;
+
+        // Oyun Fizik Değişkenleri
+        let gameState = 'AIMING'; // AIMING, IN_FLIGHT, RESULT
+        let powerPercent = 50;
+        let powerDirection = 1;
+
+        // Nesne Pozisyonları (Karşıdan Görünüm)
+        const goal = { x: 100, y: 110, width: 300, height: 130 };
+        const ball = { x: 250, y: 520, radius: 13, vx: 0, vy: 0, vz: 0, z: 0 };
+        const goalkeeper = { x: 250, y: 190, width: 42, height: 50, vx: 2, state: 'IDLE', celebrateTimer: 0 };
+        
+        // File Sallanma Animasyonu
+        let netShake = 0;
 
         // Ses Efektleri (Web Audio API)
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -82,89 +151,114 @@
             if (!audioCtx) audioCtx = new AudioCtx();
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
             const now = audioCtx.currentTime;
 
             if (type === 'kick') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
-                gain.gain.setValueAtTime(0.8, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now);
-                osc.stop(now + 0.15);
-            } else if (type === 'goal') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
-                gain.gain.setValueAtTime(0.5, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            } else if (type === 'save') {
-                osc.type = 'square';
                 osc.frequency.setValueAtTime(150, now);
-                osc.frequency.linearRampToValueAtTime(60, now + 0.2);
-                gain.gain.setValueAtTime(0.6, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
+                gain.gain.setValueAtTime(0.8, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now); osc.stop(now + 0.12);
+            } else if (type === 'goal') {
+                // Taraftar Sesi Efekti
+                for (let i = 0; i < 3; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300 + i * 150, now);
+                    osc.frequency.exponentialRampToValueAtTime(600 + i * 100, now + 0.6);
+                    gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now); osc.stop(now + 0.6);
+                }
+            } else if (type === 'post') { // Direk Sesi
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(450, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
+                gain.gain.setValueAtTime(0.7, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now); osc.stop(now + 0.25);
+            } else if (type === 'save') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.2);
+                gain.gain.setValueAtTime(0.5, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
             }
         }
 
-        // Kale & Obje Pozisyonları (Kale: x: 90 ile 390 arası, y: 80)
-        const goal = { x: 90, y: 80, width: 300, height: 120 };
-        const ball = { x: 240, y: 500, radius: 12, vx: 0, vy: 0, vz: 0, z: 0, spin: 0 };
-        const goalkeeper = { x: 240, y: 140, width: 40, height: 45, vx: 2 };
-        let barrier = [];
+        // Başlangıç Kurulumu
+        if (playerName) {
+            document.getElementById('nameOverlay').classList.add('hidden');
+            document.getElementById('playerDisplayName').innerText = playerName;
+            updateRankUI();
+        }
+
+        function saveNameAndStart() {
+            const input = document.getElementById('usernameInput').value.trim();
+            if (!input) return;
+            playerName = input;
+            localStorage.setItem('fb_playerName', playerName);
+            document.getElementById('playerDisplayName').innerText = playerName;
+            document.getElementById('nameOverlay').classList.add('hidden');
+            updateRankUI();
+            saveLeaderboard();
+        }
+
+        function updateRankUI() {
+            let newRankIndex = 0;
+            for (let i = RANKS.length - 1; i >= 0; i--) {
+                if (score >= RANKS[i].minScore) {
+                    newRankIndex = i;
+                    break;
+                }
+            }
+
+            const currentRank = RANKS[newRankIndex];
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('rankNameDisplay').innerText = currentRank.name + " Ligi";
+            document.getElementById('rankBadge').innerText = currentRank.badge;
+
+            // Lig Yükselme Kontrolü & Animasyonu
+            if (newRankIndex > currentRankIndex && currentRankIndex !== 0) {
+                showRankUpAnimation(currentRank.name);
+            }
+            currentRankIndex = newRankIndex;
+            saveLeaderboard();
+        }
+
+        function showRankUpAnimation(rankName) {
+            const overlay = document.getElementById('messageOverlay');
+            document.getElementById('rankUpIcon').classList.remove('hidden');
+            document.getElementById('msgTitle').innerText = "LİG YÜKSELDİN!";
+            document.getElementById('msgTitle').className = "text-3xl font-black text-amber-400 mb-1 text-center";
+            document.getElementById('msgSub').innerText = "Tebrikler! Yeni Lig: " + rankName;
+            overlay.classList.remove('hidden');
+        }
+
+        // Güç Barı Döngüsü (%0 - %99)
+        function updatePowerBar() {
+            if (gameState === 'AIMING') {
+                powerPercent += powerDirection * 2.2;
+                if (powerPercent >= 99) { powerPercent = 99; powerDirection = -1; }
+                if (powerPercent <= 0) { powerPercent = 0; powerDirection = 1; }
+
+                document.getElementById('powerFill').style.height = powerPercent + '%';
+                document.getElementById('powerText').innerText = '%' + Math.floor(powerPercent);
+            }
+        }
 
         // Sürükleme Mantığı
         let dragStart = null;
-        let dragCurrent = null;
 
-        function initLevel() {
-            ball.x = 240;
-            ball.y = 500;
-            ball.z = 0;
-            ball.vx = 0;
-            ball.vy = 0;
-            ball.vz = 0;
-            ball.spin = 0;
-
-            goalkeeper.x = 240;
-            goalkeeper.vx = (2 + level * 0.4) * (Math.random() > 0.5 ? 1 : -1);
-
-            // Baraj Oluştur (2. Seviyeden İtibaren)
-            barrier = [];
-            if (level >= 2) {
-                const wallCount = Math.min(4, level);
-                const startX = 240 - (wallCount * 18) / 2;
-                for (let i = 0; i < wallCount; i++) {
-                    barrier.push({ x: startX + i * 20, y: 280, width: 16, height: 45 });
-                }
-            }
-            gameState = 'AIMING';
-        }
-
-        function startGame() {
-            document.getElementById('messageOverlay').classList.add('hidden');
-            score = 0;
-            level = 1;
-            updateUI();
-            initLevel();
-        }
-
-        function updateUI() {
-            document.getElementById('scoreDisplay').innerText = score;
-            document.getElementById('levelDisplay').innerText = level;
-            document.getElementById('highScoreDisplay').innerText = highScore;
-        }
-
-        // Girdi Dinleyicileri
         function getCanvasPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -180,18 +274,11 @@
             dragStart = getCanvasPos(e);
         });
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (dragStart && gameState === 'AIMING') {
-                dragCurrent = getCanvasPos(e);
-            }
-        });
-
         window.addEventListener('mouseup', (e) => {
             if (!dragStart || gameState !== 'AIMING') return;
             const dragEnd = getCanvasPos(e);
-            shootBall(dragStart, dragEnd);
+            shoot(dragStart, dragEnd);
             dragStart = null;
-            dragCurrent = null;
         });
 
         canvas.addEventListener('touchstart', (e) => {
@@ -199,214 +286,136 @@
             dragStart = getCanvasPos(e);
         }, { passive: true });
 
-        canvas.addEventListener('touchmove', (e) => {
-            if (dragStart && gameState === 'AIMING') {
-                dragCurrent = getCanvasPos(e);
-            }
-        }, { passive: true });
-
         canvas.addEventListener('touchend', (e) => {
             if (!dragStart || gameState !== 'AIMING') return;
             const dragEnd = e.changedTouches ? {
                 x: (e.changedTouches[0].clientX - canvas.getBoundingClientRect().left) * (canvas.width / canvas.getBoundingClientRect().width),
                 y: (e.changedTouches[0].clientY - canvas.getBoundingClientRect().top) * (canvas.height / canvas.getBoundingClientRect().height)
-            } : dragCurrent;
-            shootBall(dragStart, dragEnd);
+            } : dragStart;
+            shoot(dragStart, dragEnd);
             dragStart = null;
-            dragCurrent = null;
         });
 
-        function shootBall(start, end) {
+        function shoot(start, end) {
             const dx = end.x - start.x;
             const dy = end.y - start.y;
 
-            if (dy >= -10) return; // Arkaya çekmeleri engelle
+            if (dy >= -10) return; // Gerisinden sürüklenirse atma
 
-            ball.vx = dx * 0.08;
-            ball.vy = dy * 0.09;
-            ball.vz = -dy * 0.025; // Yükseklik hızı
-            ball.spin = dx * 0.01;
+            // Kağıttaki istek: Hız %0-%99 arası tamamen etkiler (Örn: %52 hızla gider)
+            const speedFactor = (powerPercent / 100) * 1.3 + 0.4;
+
+            ball.vx = dx * 0.07 * speedFactor;
+            ball.vy = dy * 0.08 * speedFactor;
+            ball.vz = -dy * 0.022 * speedFactor;
 
             playSound('kick');
             gameState = 'IN_FLIGHT';
         }
 
-        // Oyun Döngüsü ve Güncelleme
+        // Oyun Güncelleme
         function update() {
+            updatePowerBar();
+
             // Kaleci Hareketi
             if (gameState === 'AIMING') {
                 goalkeeper.x += goalkeeper.vx;
-                if (goalkeeper.x < goal.x + 30 || goalkeeper.x > goal.x + goal.width - 30) {
+                if (goalkeeper.x < goal.x + 40 || goalkeeper.x > goal.x + goal.width - 40) {
                     goalkeeper.vx *= -1;
                 }
             }
 
+            // File Sallanma Efekti
+            if (netShake > 0) netShake -= 0.5;
+
             // Top Hareketi
             if (gameState === 'IN_FLIGHT') {
-                ball.x += ball.vx + ball.spin;
+                ball.x += ball.vx;
                 ball.y += ball.vy;
                 ball.z += ball.vz;
-                ball.vz -= 0.1; // Yerçekimi
+                ball.vz -= 0.12; // Yerçekimi
 
                 if (ball.z < 0) ball.z = 0;
 
-                // Kaleci Takip / Atlama Mekaniği
-                if (ball.y < 300 && ball.y > 100) {
+                // Kaleci Takip Ve Sevinme
+                if (ball.y < 320 && ball.y > 140) {
                     goalkeeper.x += (ball.x - goalkeeper.x) * 0.1;
                 }
 
-                // Çarpışma: Baraj
-                barrier.forEach(p => {
-                    if (ball.z < 35 &&
-                        ball.x > p.x - 8 && ball.x < p.x + p.width + 8 &&
-                        ball.y > p.y - 8 && ball.y < p.y + p.height) {
-                        ball.vy *= -0.3;
-                        ball.vx *= -0.5;
-                        playSound('save');
-                        endRound('SAVED', 'Baraja Takıldı!');
-                    }
-                });
-
-                // Çarpışma: Kaleci
-                if (Math.abs(ball.x - goalkeeper.x) < 22 &&
-                    Math.abs(ball.y - goalkeeper.y) < 22 &&
-                    ball.z < 50) {
+                // Çarpışma: Kaleci Kurtarışı
+                if (Math.abs(ball.x - goalkeeper.x) < 25 &&
+                    Math.abs(ball.y - goalkeeper.y) < 25 &&
+                    ball.z < 55) {
                     playSound('save');
-                    endRound('SAVED', 'Kaleci Kurtardı!');
+                    score = Math.max(0, score - 100);
+                    goalkeeper.state = 'CELEBRATE';
+                    endRound('KURTARILDI!', '-100 Puan (Kaleci Kurtardı)', 'text-red-400');
+                    return;
                 }
 
-                // Kale Çizgisine / Çerçevesine Ulaştı mı?
-                if (ball.y <= goal.y + 15) {
-                    // Kesin Gol Kontrolü: Top kalenin iç çerçevesinde ve havada/çizgide olmalı
-                    const inGoalWidth = ball.x >= goal.x + 5 && ball.x <= goal.x + goal.width - 5;
-                    const inGoalHeight = ball.z <= goal.height; // Çok havalanıp üstten auta gitmesin
+                // Çarpışma: Direk Sistemi (Sol/Sağ/Üst Direk)
+                const isNearPostLeft = Math.abs(ball.x - goal.x) < 10;
+                const isNearPostRight = Math.abs(ball.x - (goal.x + goal.width)) < 10;
+                const isNearCrossbar = Math.abs(ball.z - goal.height) < 10;
+
+                if (ball.y <= goal.y + 10 && (isNearPostLeft || isNearPostRight || isNearCrossbar)) {
+                    playSound('post');
+                    ball.vx *= -0.8;
+                    ball.vy *= -0.3;
+                    score = Math.max(0, score - 100);
+                    endRound('DİREK!', '-100 Puan (Top Direkten Döndü)', 'text-amber-400');
+                    return;
+                }
+
+                // Kale Çizgisine Ulaştı mı?
+                if (ball.y <= goal.y + 10) {
+                    const inGoalWidth = ball.x > goal.x + 8 && ball.x < goal.x + goal.width - 8;
+                    const inGoalHeight = ball.z < goal.height - 5;
 
                     if (inGoalWidth && inGoalHeight) {
                         playSound('goal');
-                        score += 100 + level * 20;
-                        if (score > highScore) {
-                            highScore = score;
-                            localStorage.setItem('fb_highScore', highScore);
-                        }
-                        level++;
-                        endRound('GOAL', 'GOL!');
+                        netShake = 12; // File salla
+                        score += 100;
+                        endRound('GOL!', '+100 Puan Kazanıldı!', 'text-emerald-400');
                     } else {
                         playSound('save');
-                        endRound('OUT', 'DIŞARI (AUT)!');
+                        score = Math.max(0, score - 100);
+                        endRound('AUT!', '-100 Puan (Top Dışarı Çıktı)', 'text-red-400');
                     }
                 }
             }
         }
 
-        function endRound(state, text) {
-            gameState = state;
+        function endRound(title, sub, colorClass) {
+            gameState = 'RESULT';
+            updateRankUI();
+
             setTimeout(() => {
                 const overlay = document.getElementById('messageOverlay');
-                document.getElementById('msgTitle').innerText = text;
-                document.getElementById('msgSub').innerText = state === 'GOAL' ? 'Harika şut! Sıradaki seviyeye geçiyorsun.' : 'Tekrar dene!';
-                document.getElementById('startBtn').innerText = state === 'GOAL' ? 'DEVAM ET' : 'YENİDEN DENE';
+                document.getElementById('rankUpIcon').classList.add('hidden');
+                document.getElementById('msgTitle').innerText = title;
+                document.getElementById('msgTitle').className = "text-4xl font-black mb-1 text-center " + colorClass;
+                document.getElementById('msgSub').innerText = sub;
                 overlay.classList.remove('hidden');
-                updateUI();
-            }, 600);
+            }, 500);
         }
 
-        // Ekran Çizimi
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Saha Çimi
-            ctx.fillStyle = '#15803d';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#16a34a';
-            for (let i = 0; i < canvas.height; i += 60) {
-                if ((i / 60) % 2 === 0) {
-                    ctx.fillRect(0, i, canvas.width, 60);
-                }
-            }
-
-            // Ceza Sahası Çizgisi
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(40, 120, 400, 380);
-
-            // Kale Arka Planı
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
-
-            // Ağ Çizgileri
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-            ctx.lineWidth = 1;
-            for (let x = goal.x; x <= goal.x + goal.width; x += 15) {
-                ctx.beginPath();
-                ctx.moveTo(x, goal.y);
-                ctx.lineTo(x, goal.y + goal.height);
-                ctx.stroke();
-            }
-
-            // Kale Direkleri
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 6;
-            ctx.strokeRect(goal.x, goal.y, goal.width, goal.height);
-
-            // Baraj Oyuncuları
-            barrier.forEach(p => {
-                ctx.fillStyle = '#3b82f6';
-                ctx.fillRect(p.x, p.y, p.width, p.height);
-                // Kafa
-                ctx.fillStyle = '#fde047';
-                ctx.beginPath();
-                ctx.arc(p.x + p.width / 2, p.y - 6, 7, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Kaleci
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(goalkeeper.x - goalkeeper.width / 2, goalkeeper.y - goalkeeper.height / 2, goalkeeper.width, goalkeeper.height);
-            // Kaleci Kafası
-            ctx.fillStyle = '#fca5a5';
-            ctx.beginPath();
-            ctx.arc(goalkeeper.x, goalkeeper.y - goalkeeper.height / 2 - 8, 8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Nişan / Çizgi Göstergesi
-            if (dragStart && dragCurrent) {
-                ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)';
-                ctx.lineWidth = 4;
-                ctx.setLineDash([6, 6]);
-                ctx.beginPath();
-                ctx.moveTo(ball.x, ball.y);
-                ctx.lineTo(ball.x + (dragCurrent.x - dragStart.x), ball.y + (dragCurrent.y - dragStart.y));
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-
-            // Top Gölgesi
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.beginPath();
-            ctx.ellipse(ball.x, ball.y, ball.radius * (1 - ball.z / 200), (ball.radius / 2) * (1 - ball.z / 200), 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Top
-            const currentRadius = Math.max(4, ball.radius * (1 - ball.y / 1000) + ball.z * 0.1);
-            const drawY = ball.y - ball.z;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(ball.x, drawY, currentRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+        function resetRound() {
+            document.getElementById('messageOverlay').classList.add('hidden');
+            ball.x = 250;
+            ball.y = 520;
+            ball.z = 0;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.vz = 0;
+            goalkeeper.x = 250;
+            goalkeeper.state = 'IDLE';
+            gameState = 'AIMING';
         }
 
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        loop();
-    </script>
-</body>
-</html>
+        // Sıralama & LocalStorage Kaydı
+        function saveLeaderboard() {
+            let leaderboard = JSON.parse(localStorage.getItem('fb_leaderboard')) || [
+                { name: "X Kişisi", score: 1000 },
+                { name: "Y Kişisi", score: 900 },
+                { name: "Z Kişisi", score
