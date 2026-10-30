@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Penaltı & Serbest Vuruş 2026 - Lig & Rank Sistemli</title>
+    <title>Penaltı & Serbest Vuruş 2026 - Lig Sistemli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -30,7 +30,7 @@
     <!-- Üst Skor, Lig ve Profil Paneli -->
     <div class="w-full max-w-xl bg-slate-900/90 backdrop-blur rounded-2xl p-4 mb-2 border border-slate-700 flex justify-between items-center shadow-2xl">
         <div class="flex items-center gap-3">
-            <div id="rankBadge" class="w-12 h-12 rounded-xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center font-black text-amber-300 text-xs text-center p-1 leading-tight shadow-lg shadow-amber-500/20">
+            <div id="rankBadge" class="w-12 h-12 rounded-xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center font-black text-amber-300 text-xs text-center p-1 leading-tight shadow-lg">
                 BRONZ I
             </div>
             <div>
@@ -38,12 +38,12 @@
                 <p id="rankNameDisplay" class="text-xs text-amber-400 font-semibold">Bronz I Ligi</p>
             </div>
         </div>
-        <div class="flex gap-3 text-center">
+        <div class="flex gap-3 text-center items-center">
             <div class="bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
                 <div class="text-[10px] text-slate-400 font-bold uppercase">Puan</div>
                 <div id="scoreDisplay" class="text-xl font-black text-emerald-400">0</div>
             </div>
-            <button onclick="showLeaderboard()" class="bg-indigo-600/80 hover:bg-indigo-500 px-3 py-1.5 rounded-xl border border-indigo-400 text-xs font-bold transition flex items-center justify-center">
+            <button onclick="showLeaderboard()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2.5 rounded-xl border border-indigo-400 text-xs font-bold transition flex items-center justify-center shadow-lg">
                 🏆 Sıralama
             </button>
         </div>
@@ -54,13 +54,13 @@
         <canvas id="gameCanvas" width="500" height="620" class="rounded-2xl border-2 border-slate-700 w-full max-w-[500px] h-auto cursor-crosshair"></canvas>
         
         <!-- Güç Gösterge Barı (%0 - %99) -->
-        <div class="absolute right-4 top-16 w-5 h-48 bg-slate-900/80 border-2 border-slate-600 rounded-full overflow-hidden flex flex-col justify-end p-0.5">
+        <div class="absolute right-4 top-4 w-5 h-48 bg-slate-900/80 border-2 border-slate-600 rounded-full overflow-hidden flex flex-col justify-end p-0.5 shadow-lg">
             <div id="powerFill" class="w-full bg-gradient-to-t from-emerald-500 via-amber-400 to-red-500 rounded-full transition-all duration-75" style="height: 0%;"></div>
             <div id="powerText" class="absolute -left-10 bottom-0 text-[11px] font-black text-amber-300 bg-slate-900/90 px-1 py-0.5 rounded border border-slate-700">%0</div>
         </div>
 
         <!-- Giriş ve İsim Alma Overlay -->
-        <div id="nameOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 z-20">
+        <div id="nameOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 z-30">
             <h2 class="text-3xl font-black text-amber-400 mb-2 tracking-wider text-center">FUTBOL 2026</h2>
             <p class="text-slate-300 text-xs mb-6 text-center">Liglerde Yüksel, Penaltı Ustası Ol!</p>
             
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Durum / Mesaj Overlay -->
-        <div id="messageOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hidden z-10">
+        <div id="messageOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hidden z-20">
             <div id="rankUpIcon" class="hidden mb-3 text-6xl rank-anim">🛡️</div>
             <h2 id="msgTitle" class="text-3xl font-black text-emerald-400 mb-1 tracking-wider text-center">GOL!</h2>
             <p id="msgSub" class="text-amber-300 text-sm font-semibold mb-6 text-center px-6">+100 Puan Kazandın!</p>
@@ -82,11 +82,9 @@
         </div>
 
         <!-- Sıralama Overlay -->
-        <div id="leaderboardOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md rounded-2xl flex flex-col p-6 hidden z-30">
+        <div id="leaderboardOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md rounded-2xl flex flex-col p-6 hidden z-40">
             <h3 class="text-2xl font-black text-amber-400 mb-4 text-center">🏆 LİDERLİK SIRALAMASI</h3>
-            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1">
-                <!-- Dinamik Liste -->
-            </div>
+            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1"></div>
             <button onclick="closeLeaderboard()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-600">
                 Kapat
             </button>
@@ -102,7 +100,6 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Lig Sistemi Tanımları (Kağıttaki Tüm Ligler)
         const RANKS = [
             { name: "Bronz I", minScore: 0, badge: "🥉 I" },
             { name: "Bronz II", minScore: 300, badge: "🥉 II" },
@@ -125,32 +122,24 @@
             { name: "Penaltı Ustası", minScore: 11000, badge: "👑 USTA" }
         ];
 
-        // Oyuncu Bilgileri
         let playerName = localStorage.getItem('fb_playerName') || '';
         let score = parseInt(localStorage.getItem('fb_playerScore')) || 0;
         let currentRankIndex = 0;
-
-        // Oyun Fizik Değişkenleri
-        let gameState = 'AIMING'; // AIMING, IN_FLIGHT, RESULT
+        let gameState = 'AIMING';
         let powerPercent = 50;
         let powerDirection = 1;
 
-        // Nesne Pozisyonları (Karşıdan Görünüm)
         const goal = { x: 100, y: 110, width: 300, height: 130 };
         const ball = { x: 250, y: 520, radius: 13, vx: 0, vy: 0, vz: 0, z: 0 };
-        const goalkeeper = { x: 250, y: 190, width: 42, height: 50, vx: 2, state: 'IDLE', celebrateTimer: 0 };
-        
-        // File Sallanma Animasyonu
+        const goalkeeper = { x: 250, y: 190, width: 42, height: 50, vx: 2, state: 'IDLE' };
         let netShake = 0;
 
-        // Ses Efektleri (Web Audio API)
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
         function playSound(type) {
             if (!audioCtx) audioCtx = new AudioCtx();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const now = audioCtx.currentTime;
 
             if (type === 'kick') {
@@ -163,7 +152,6 @@
                 gain.gain.setValueAtTime(0.8, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
                 osc.start(now); osc.stop(now + 0.12);
             } else if (type === 'goal') {
-                // Taraftar Sesi Efekti
                 for (let i = 0; i < 3; i++) {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -174,7 +162,7 @@
                     gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
                     osc.start(now); osc.stop(now + 0.6);
                 }
-            } else if (type === 'post') { // Direk Sesi
+            } else if (type === 'post') {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
@@ -195,7 +183,6 @@
             }
         }
 
-        // Başlangıç Kurulumu
         if (playerName) {
             document.getElementById('nameOverlay').classList.add('hidden');
             document.getElementById('playerDisplayName').innerText = playerName;
@@ -221,13 +208,11 @@
                     break;
                 }
             }
-
             const currentRank = RANKS[newRankIndex];
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('rankNameDisplay').innerText = currentRank.name + " Ligi";
             document.getElementById('rankBadge').innerText = currentRank.badge;
 
-            // Lig Yükselme Kontrolü & Animasyonu
             if (newRankIndex > currentRankIndex && currentRankIndex !== 0) {
                 showRankUpAnimation(currentRank.name);
             }
@@ -244,21 +229,17 @@
             overlay.classList.remove('hidden');
         }
 
-        // Güç Barı Döngüsü (%0 - %99)
         function updatePowerBar() {
             if (gameState === 'AIMING') {
                 powerPercent += powerDirection * 2.2;
                 if (powerPercent >= 99) { powerPercent = 99; powerDirection = -1; }
                 if (powerPercent <= 0) { powerPercent = 0; powerDirection = 1; }
-
                 document.getElementById('powerFill').style.height = powerPercent + '%';
                 document.getElementById('powerText').innerText = '%' + Math.floor(powerPercent);
             }
         }
 
-        // Sürükleme Mantığı
         let dragStart = null;
-
         function getCanvasPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -299,12 +280,9 @@
         function shoot(start, end) {
             const dx = end.x - start.x;
             const dy = end.y - start.y;
+            if (dy >= -10) return;
 
-            if (dy >= -10) return; // Gerisinden sürüklenirse atma
-
-            // Kağıttaki istek: Hız %0-%99 arası tamamen etkiler (Örn: %52 hızla gider)
             const speedFactor = (powerPercent / 100) * 1.3 + 0.4;
-
             ball.vx = dx * 0.07 * speedFactor;
             ball.vy = dy * 0.08 * speedFactor;
             ball.vz = -dy * 0.022 * speedFactor;
@@ -313,11 +291,8 @@
             gameState = 'IN_FLIGHT';
         }
 
-        // Oyun Güncelleme
         function update() {
             updatePowerBar();
-
-            // Kaleci Hareketi
             if (gameState === 'AIMING') {
                 goalkeeper.x += goalkeeper.vx;
                 if (goalkeeper.x < goal.x + 40 || goalkeeper.x > goal.x + goal.width - 40) {
@@ -325,27 +300,21 @@
                 }
             }
 
-            // File Sallanma Efekti
             if (netShake > 0) netShake -= 0.5;
 
-            // Top Hareketi
             if (gameState === 'IN_FLIGHT') {
                 ball.x += ball.vx;
                 ball.y += ball.vy;
                 ball.z += ball.vz;
-                ball.vz -= 0.12; // Yerçekimi
+                ball.vz -= 0.12;
 
                 if (ball.z < 0) ball.z = 0;
 
-                // Kaleci Takip Ve Sevinme
                 if (ball.y < 320 && ball.y > 140) {
                     goalkeeper.x += (ball.x - goalkeeper.x) * 0.1;
                 }
 
-                // Çarpışma: Kaleci Kurtarışı
-                if (Math.abs(ball.x - goalkeeper.x) < 25 &&
-                    Math.abs(ball.y - goalkeeper.y) < 25 &&
-                    ball.z < 55) {
+                if (Math.abs(ball.x - goalkeeper.x) < 25 && Math.abs(ball.y - goalkeeper.y) < 25 && ball.z < 55) {
                     playSound('save');
                     score = Math.max(0, score - 100);
                     goalkeeper.state = 'CELEBRATE';
@@ -353,7 +322,6 @@
                     return;
                 }
 
-                // Çarpışma: Direk Sistemi (Sol/Sağ/Üst Direk)
                 const isNearPostLeft = Math.abs(ball.x - goal.x) < 10;
                 const isNearPostRight = Math.abs(ball.x - (goal.x + goal.width)) < 10;
                 const isNearCrossbar = Math.abs(ball.z - goal.height) < 10;
@@ -367,14 +335,13 @@
                     return;
                 }
 
-                // Kale Çizgisine Ulaştı mı?
                 if (ball.y <= goal.y + 10) {
                     const inGoalWidth = ball.x > goal.x + 8 && ball.x < goal.x + goal.width - 8;
                     const inGoalHeight = ball.z < goal.height - 5;
 
                     if (inGoalWidth && inGoalHeight) {
                         playSound('goal');
-                        netShake = 12; // File salla
+                        netShake = 12;
                         score += 100;
                         endRound('GOL!', '+100 Puan Kazanıldı!', 'text-emerald-400');
                     } else {
@@ -389,7 +356,6 @@
         function endRound(title, sub, colorClass) {
             gameState = 'RESULT';
             updateRankUI();
-
             setTimeout(() => {
                 const overlay = document.getElementById('messageOverlay');
                 document.getElementById('rankUpIcon').classList.add('hidden');
@@ -402,20 +368,39 @@
 
         function resetRound() {
             document.getElementById('messageOverlay').classList.add('hidden');
-            ball.x = 250;
-            ball.y = 520;
-            ball.z = 0;
-            ball.vx = 0;
-            ball.vy = 0;
-            ball.vz = 0;
-            goalkeeper.x = 250;
-            goalkeeper.state = 'IDLE';
+            ball.x = 250; ball.y = 520; ball.z = 0;
+            ball.vx = 0; ball.vy = 0; ball.vz = 0;
+            goalkeeper.x = 250; goalkeeper.state = 'IDLE';
             gameState = 'AIMING';
         }
 
-        // Sıralama & LocalStorage Kaydı
         function saveLeaderboard() {
             let leaderboard = JSON.parse(localStorage.getItem('fb_leaderboard')) || [
                 { name: "X Kişisi", score: 1000 },
                 { name: "Y Kişisi", score: 900 },
-                { name: "Z Kişisi", score
+                { name: "Z Kişisi", score: 800 }
+            ];
+
+            if (playerName) {
+                const existingIndex = leaderboard.findIndex(item => item.name === playerName);
+                if (existingIndex !== -1) {
+                    leaderboard[existingIndex].score = Math.max(leaderboard[existingIndex].score, score);
+                } else {
+                    leaderboard.push({ name: playerName, score: score });
+                }
+            }
+
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('fb_leaderboard', JSON.stringify(leaderboard));
+            localStorage.setItem('fb_playerScore', score);
+        }
+
+        function showLeaderboard() {
+            saveLeaderboard();
+            let leaderboard = JSON.parse(localStorage.getItem('fb_leaderboard')) || [];
+            const container = document.getElementById('leaderboardList');
+            container.innerHTML = '';
+
+            leaderboard.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = `flex justify-between items-center p-3 rounded-xl border ${item.name === playerName ? 'bg-amber-500/20 border-amber-40
