@@ -4,389 +4,318 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Son Sığınak - 3D Zombi Oyunu</title>
+<title>NEON RACER - 3D Yarış Oyunu</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#080d12;color:white;font-family:Arial}
-#menu{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#071019ee;text-align:center}
-h1{font-size:48px;color:#70ff85}
-button{padding:16px 40px;font-size:20px;color:white;background:#198b43;border:0;border-radius:9px;cursor:pointer}
-#hud{position:fixed;top:15px;left:15px;z-index:5;font-size:19px;line-height:1.8;text-shadow:2px 2px 4px black}
-#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;z-index:4;pointer-events:none}
-#message{position:fixed;bottom:25px;width:100%;text-align:center;pointer-events:none}
+body{margin:0;overflow:hidden;background:#080b13;color:white;font-family:Arial}
+canvas{display:block}
+#menu{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#080b13,#14233b);text-align:center}
+h1{font-size:60px;color:#00eaff;text-shadow:0 0 25px #00eaff}
+button{padding:16px 45px;background:#00bcd4;color:white;border:0;border-radius:8px;font-size:21px;font-weight:bold;cursor:pointer;margin:10px}
+#hud{position:fixed;top:15px;left:15px;font-size:20px;line-height:1.8;text-shadow:2px 2px 5px black;pointer-events:none}
+#message{position:fixed;bottom:20px;width:100%;text-align:center;font-size:17px;pointer-events:none}
+#nitro{position:fixed;right:20px;top:20px;width:160px;height:15px;background:#333;border:2px solid white}
+#nitroFill{height:100%;width:100%;background:#00eaff}
 </style>
 </head>
 <body>
 <div id="menu">
-<h1>SON SIĞINAK</h1>
-<h2>3D ZOMBİ KIYAMETİ</h2>
-<p>Şehirde hayatta kal. Zombilere karşı savaş.</p>
-<button id="start">OYUNA BAŞLA</button>
-<p>WASD: Hareket | Fare: Bakış | Sol tık: Ateş</p>
+<h1>NEON RACER</h1>
+<h2>3D ŞEHİR YARIŞI</h2>
+<p>Şehirde yarış, rakiplerini geç ve şampiyon ol!</p>
+<p>WASD / Ok Tuşları: Sürüş</p>
+<p>SPACE: Nitro | R: Yeniden başlat</p>
+<button id="start">YARIŞA BAŞLA</button>
 </div>
 <div id="hud">
-❤️ Can: <span id="health">100</span><br>
-☠️ Zombi: <span id="kills">0</span><br>
-🌊 Dalga: <span id="wave">1</span><br>
-⭐ Puan: <span id="score">0</span>
+🏁 Tur: <span id="lap">1</span>/3<br>
+🏎️ Hız: <span id="speed">0</span> KM/H<br>
+⭐ Puan: <span id="score">0</span><br>
+⏱️ Süre: <span id="time">0</span>
 </div>
-<div id="crosshair">+</div>
-<div id="message">Hayatta kal!</div>
+<div id="nitro"><div id="nitroFill"></div></div>
+<div id="message">Yarışa hazır ol!</div>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
 </script>
+
 <script type="module">
 import * as THREE from "three";
 
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x101923);
-scene.fog=new THREE.Fog(0x101923,20,100);
+scene.background=new THREE.Color(0x101a30);
+scene.fog=new THREE.Fog(0x101a30,30,180);
 
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,150);
-camera.position.set(0,1.7,8);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,300);
+camera.position.set(0,7,13);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0x9bbcff,0x303020,2));
+scene.add(new THREE.HemisphereLight(0x9dbbff,0x222233,2));
 const sun=new THREE.DirectionalLight(0xffffff,2);
-sun.position.set(-15,25,10);
+sun.position.set(-20,30,20);
 sun.castShadow=true;
 scene.add(sun);
 
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.MeshStandardMaterial({color:0x303638}));
+const ground=new THREE.Mesh(
+new THREE.PlaneGeometry(300,300),
+new THREE.MeshStandardMaterial({color:0x252b35})
+);
 ground.rotation.x=-Math.PI/2;
 ground.receiveShadow=true;
 scene.add(ground);
 
-const grid=new THREE.GridHelper(150,60,0x657070,0x3b4646);
-grid.position.y=.02;
-scene.add(grid);
+const road=new THREE.Mesh(
+new THREE.PlaneGeometry(18,300),
+new THREE.MeshStandardMaterial({color:0x17191e})
+);
+road.rotation.x=-Math.PI/2;
+road.position.y=.03;
+scene.add(road);
 
-const buildings = [];
-
-function createBuilding(x, z, w, h, d) {
-    const building = new THREE.Group();
-
-    // Ana beton duvar
-    const wall = new THREE.Mesh(
-        new THREE.BoxGeometry(w, h, d),
-        new THREE.MeshStandardMaterial({
-            color: 0x51565a,
-            roughness: 0.95
-        })
-    );
-
-    wall.position.y = h / 2;
-    wall.castShadow = true;
-    wall.receiveShadow = true;
-    building.add(wall);
-
-    // Tuğla detayları
-    const brickMaterial = new THREE.MeshStandardMaterial({
-        color: 0x794b3a,
-        roughness: 1
-    });
-
-    for (let row = 0; row < Math.floor(h / 1.1); row++) {
-        for (let col = 0; col < Math.floor(w / 1.2); col++) {
-            const brick = new THREE.Mesh(
-                new THREE.BoxGeometry(1.05, 0.18, 0.08),
-                brickMaterial
-            );
-
-            brick.position.set(
-                -w / 2 + 0.6 + col * 1.2 + (row % 2) * 0.5,
-                0.5 + row * 1.1,
-                d / 2 + 0.045
-            );
-
-            building.add(brick);
-        }
-    }
-
-    // Pencereler
-    const windowMaterial = new THREE.MeshStandardMaterial({
-        color: 0x101d27,
-        emissive: 0x152a35,
-        emissiveIntensity: 0.4
-    });
-
-    const windowCount = Math.max(1, Math.floor(w / 2));
-
-    for (let i = 0; i < windowCount; i++) {
-        const win = new THREE.Mesh(
-            new THREE.BoxGeometry(0.9, 1.1, 0.12),
-            windowMaterial
-        );
-
-        win.position.set(
-            -w / 2 + 1 + i * 2,
-            h * 0.65,
-            d / 2 + 0.08
-        );
-
-        building.add(win);
-
-        // Pencere çerçevesi
-        const frame = new THREE.Mesh(
-            new THREE.BoxGeometry(1.05, 1.25, 0.1),
-            new THREE.MeshStandardMaterial({ color: 0x242a2e })
-        );
-
-        frame.position.copy(win.position);
-        frame.position.z += 0.09;
-        building.add(frame);
-    }
-
-    // Beton üst kenar
-    const roof = new THREE.Mesh(
-        new THREE.BoxGeometry(w + 0.3, 0.25, d + 0.3),
-        new THREE.MeshStandardMaterial({ color: 0x292e32 })
-    );
-
-    roof.position.y = h + 0.1;
-    building.add(roof);
-
-    // Paslı metal detaylar
-    const metal = new THREE.Mesh(
-        new THREE.BoxGeometry(w + 0.1, 0.12, 0.12),
-        new THREE.MeshStandardMaterial({
-            color: 0x70432b,
-            metalness: 0.6,
-            roughness: 0.8
-        })
-    );
-
-    metal.position.set(0, h * 0.35, d / 2 + 0.1);
-    building.add(metal);
-
-    building.position.set(x, 0, z);
-    scene.add(building);
-    buildings.push(building);
+for(let z=-140;z<150;z+=10){
+const line=new THREE.Mesh(
+new THREE.BoxGeometry(.25,.04,5),
+new THREE.MeshBasicMaterial({color:0xffffff})
+);
+line.position.set(0,.08,z);
+scene.add(line);
 }
 
-for (let i = 0; i < 35; i++) {
-    const x = (Math.random() - 0.5) * 110;
-    const z = (Math.random() - 0.5) * 110;
-
-    if (Math.abs(x) < 12 && Math.abs(z) < 12) continue;
-
-    createBuilding(
-        x,
-        z,
-        5 + Math.random() * 6,
-        7 + Math.random() * 14,
-        5 + Math.random() * 6
-    );
-}
- const x=(Math.random()-.5)*110;
- const z=(Math.random()-.5)*110;
- if(Math.abs(x)<12&&Math.abs(z)<12)continue;
- createBuilding(x,z,4+Math.random()*5,5+Math.random()*15,4+Math.random()*5);
+for(const x of [-9,9]){
+const edge=new THREE.Mesh(
+new THREE.BoxGeometry(.4,.2,300),
+new THREE.MeshStandardMaterial({color:0x00d9ff,emissive:0x004455})
+);
+edge.position.set(x,.12,0);
+scene.add(edge);
 }
 
-const player={health:100,score:0,kills:0,alive:true};
-let started=false,wave=1,yaw=0,pitch=0;
+for(let i=0;i<70;i++){
+const side=Math.random()<.5?-1:1;
+const w=4+Math.random()*7;
+const h=8+Math.random()*35;
+const d=5+Math.random()*8;
+
+const building=new THREE.Mesh(
+new THREE.BoxGeometry(w,h,d),
+new THREE.MeshStandardMaterial({
+color:new THREE.Color().setHSL(.58+Math.random()*.2,.3,.18)
+})
+);
+building.position.set(side*(14+Math.random()*25),h/2,-140+Math.random()*280);
+building.castShadow=true;
+scene.add(building);
+
+for(let j=0;j<12;j++){
+const windowLight=new THREE.Mesh(
+new THREE.BoxGeometry(.5,.7,.05),
+new THREE.MeshBasicMaterial({color:Math.random()>.5?0x00dfff:0xffd166})
+);
+windowLight.position.set(
+building.position.x+(Math.random()-.5)*w,
+Math.random()*h,
+building.position.z+d/2+.04
+);
+scene.add(windowLight);
+}
+}
+
+function createCar(color){
+const car=new THREE.Group();
+
+const body=new THREE.Mesh(
+new THREE.BoxGeometry(2.2,.7,4),
+new THREE.MeshStandardMaterial({color,metalness:.7,roughness:.25})
+);
+body.position.y=.8;
+body.castShadow=true;
+car.add(body);
+
+const cabin=new THREE.Mesh(
+new THREE.BoxGeometry(1.5,.8,1.8),
+new THREE.MeshStandardMaterial({color:0x152b3d,metalness:.5,roughness:.2})
+);
+cabin.position.set(0,1.45,-.2);
+car.add(cabin);
+
+for(const x of [-1.1,1.1]){
+for(const z of [-1.25,1.25]){
+const wheel=new THREE.Mesh(
+new THREE.CylinderGeometry(.48,.48,.3,20),
+new THREE.MeshStandardMaterial({color:0x090909})
+);
+wheel.rotation.z=Math.PI/2;
+wheel.position.set(x,.5,z);
+car.add(wheel);
+}}
+
+for(const x of [-.75,.75]){
+const light=new THREE.Mesh(
+new THREE.BoxGeometry(.45,.2,.1),
+new THREE.MeshBasicMaterial({color:0xffffff})
+);
+light.position.set(x,.9,2.02);
+car.add(light);
+
+const rear=new THREE.Mesh(
+new THREE.BoxGeometry(.4,.2,.1),
+new THREE.MeshBasicMaterial({color:0xff1111})
+);
+rear.position.set(x,.9,-2.02);
+car.add(rear);
+}
+return car;
+}
+
+const playerCar=createCar(0x00aaff);
+playerCar.position.set(0,0,5);
+scene.add(playerCar);
+
+const rivals=[];
+for(let i=0;i<5;i++){
+const rival=createCar([0xff3333,0xffcc00,0x9933ff,0x33ff66,0xffffff][i]);
+rival.position.set((i%3-1)*5,0,-20-i*20);
+rival.userData.speed=20+Math.random()*12;
+scene.add(rival);
+rivals.push(rival);
+}
+
 const keys={};
-const zombies=[];
-const bullets=[];
-const clock=new THREE.Clock();
-let spawnTimer=0,damageTimer=0;
-
-document.addEventListener("keydown",e=>keys[e.code]=true);
+document.addEventListener("keydown",e=>{
+keys[e.code]=true;
+if(e.code==="KeyR")location.reload();
+});
 document.addEventListener("keyup",e=>keys[e.code]=false);
 
-document.addEventListener("mousemove",e=>{
- if(document.pointerLockElement!==renderer.domElement)return;
- yaw-=e.movementX*.002;
- pitch-=e.movementY*.002;
- pitch=THREE.MathUtils.clamp(pitch,-1.4,1.4);
- camera.rotation.order="YXZ";
- camera.rotation.y=yaw;
- camera.rotation.x=pitch;
-});
+let started=false;
+let speed=0;
+let score=0;
+let lap=1;
+let nitro=100;
+let elapsed=0;
+let finished=false;
+let nitroActive=false;
 
-function createZombie(){
- const zombie=new THREE.Group();
- const color=new THREE.Color().setHSL(.25+Math.random()*.12,.45,.35);
- const material=new THREE.MeshStandardMaterial({color});
- const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.2,.5),material);
- body.position.y=1;
- body.castShadow=true;
- zombie.add(body);
-
- const head=new THREE.Mesh(new THREE.SphereGeometry(.32,12,12),new THREE.MeshStandardMaterial({color:0x83a65a}));
- head.position.y=1.8;
- zombie.add(head);
-
- for(let i=-1;i<=1;i+=2){
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),new THREE.MeshBasicMaterial({color:0xff2222}));
-  eye.position.set(i*.12,1.85,.27);
-  zombie.add(eye);
- }
-
- const angle=Math.random()*Math.PI*2;
- const distance=25+Math.random()*12;
- zombie.position.set(camera.position.x+Math.cos(angle)*distance,0,camera.position.z+Math.sin(angle)*distance);
- zombie.userData={health:2,speed:1.1+Math.random()*.7,attack:0};
- scene.add(zombie);
- zombies.push(zombie);
-}
-
-function shoot(){
- if(!started||!player.alive)return;
- const direction=new THREE.Vector3();
- camera.getWorldDirection(direction);
- const bullet=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),new THREE.MeshBasicMaterial({color:0x7dffad}));
- bullet.position.copy(camera.position);
- bullet.userData={velocity:direction.multiplyScalar(45),life:2};
- scene.add(bullet);
- bullets.push(bullet);
-}
-
-document.addEventListener("mousedown",e=>{
- if(e.button===0)shoot();
-});
+const clock=new THREE.Clock();
 
 document.getElementById("start").onclick=()=>{
- if(!started){
-  started=true;
-  document.getElementById("menu").style.display="none";
-  renderer.domElement.requestPointerLock();
- }
+started=true;
+document.getElementById("menu").style.display="none";
+document.getElementById("message").textContent="YARIŞ BAŞLADI!";
 };
 
-document.addEventListener("keydown",e=>{
- if(e.code==="Escape"&&started&&player.alive){
-  document.exitPointerLock();
-  document.getElementById("menu").style.display="flex";
-  document.querySelector("#menu h1").textContent="OYUN DURAKLATILDI";
-  document.querySelector("#menu button").textContent="DEVAM ET";
-  document.getElementById("start").onclick=()=>{
-   document.getElementById("menu").style.display="none";
-   renderer.domElement.requestPointerLock();
-  };
- }
-});
-
 function updatePlayer(dt){
- const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
- const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
- const move=new THREE.Vector3();
- if(keys.KeyW||keys.ArrowUp)move.add(forward);
- if(keys.KeyS||keys.ArrowDown)move.sub(forward);
- if(keys.KeyD||keys.ArrowRight)move.add(right);
- if(keys.KeyA||keys.ArrowLeft)move.sub(right);
- if(move.lengthSq()>0){
-  move.normalize().multiplyScalar(8*dt);
-  camera.position.add(move);
- }
- camera.position.y=1.7;
- camera.position.x=THREE.MathUtils.clamp(camera.position.x,-65,65);
- camera.position.z=THREE.MathUtils.clamp(camera.position.z,-65,65);
+const accelerating=keys.KeyW||keys.ArrowUp;
+const braking=keys.KeyS||keys.ArrowDown;
+const left=keys.KeyA||keys.ArrowLeft;
+const right=keys.KeyD||keys.ArrowRight;
+
+nitroActive=keys.Space&&nitro>0&&speed>10;
+
+if(accelerating)speed+=30*dt;
+else speed-=10*dt;
+
+if(braking)speed-=45*dt;
+
+if(nitroActive){
+speed+=45*dt;
+nitro-=30*dt;
+}else{
+nitro=Math.min(100,nitro+10*dt);
 }
 
-function updateZombies(dt){
- for(let i=zombies.length-1;i>=0;i--){
-  const z=zombies[i];
-  const dx=camera.position.x-z.position.x;
-  const dz=camera.position.z-z.position.z;
-  const distance=Math.hypot(dx,dz);
-  if(distance>1.35){
-   z.position.x+=(dx/distance)*z.userData.speed*dt;
-   z.position.z+=(dz/distance)*z.userData.speed*dt;
-   z.lookAt(camera.position.x,0,camera.position.z);
-  }else{
-   z.userData.attack-=dt;
-   if(z.userData.attack<=0){
-    player.health=Math.max(0,player.health-8);
-    z.userData.attack=.8;
-   }
-  }
- }
+speed=THREE.MathUtils.clamp(speed,0,100);
+
+const steering=(left?1:0)-(right?1:0);
+playerCar.position.x+=steering*(8+speed*.08)*dt;
+playerCar.position.x=THREE.MathUtils.clamp(playerCar.position.x,-7,7);
+
+playerCar.rotation.z=THREE.MathUtils.lerp(
+playerCar.rotation.z,-steering*.15,dt*5
+);
+playerCar.position.z=5;
 }
 
-function updateBullets(dt){
- for(let i=bullets.length-1;i>=0;i--){
-  const b=bullets[i];
-  b.position.addScaledVector(b.userData.velocity,dt);
-  b.userData.life-=dt;
-  let hit=false;
-  for(let j=zombies.length-1;j>=0;j--){
-   if(b.position.distanceTo(zombies[j].position.clone().add(new THREE.Vector3(0,1,0)))<1){
-    zombies[j].userData.health--;
-    if(zombies[j].userData.health<=0){
-     scene.remove(zombies[j]);
-     zombies.splice(j,1);
-     player.kills++;
-     player.score+=100;
-    }
-    hit=true;
-    break;
-   }
-  }
-  if(hit||b.userData.life<=0){
-   scene.remove(b);
-   bullets.splice(i,1);
-  }
- }
+function updateRivals(dt){
+for(const rival of rivals){
+rival.position.z+=(speed*.22-rival.userData.speed*.22)*dt;
+if(rival.position.z>15){
+rival.position.z=-100-Math.random()*50;
+rival.position.x=(Math.random()-.5)*12;
+score+=250;
+}
+}
+}
+
+function collision(){
+for(const rival of rivals){
+if(playerCar.position.distanceTo(rival.position)<2.3){
+speed*=.96;
+document.getElementById("message").textContent="DİKKAT! RAKİBE ÇARPTIN!";
+}
+}
+}
+
+function updateCamera(dt){
+const target=new THREE.Vector3(playerCar.position.x*.6,6,playerCar.position.z+12);
+camera.position.lerp(target,dt*3);
+camera.lookAt(playerCar.position.x,1,playerCar.position.z-10);
 }
 
 function updateHUD(){
- document.getElementById("health").textContent=player.health;
- document.getElementById("kills").textContent=player.kills;
- document.getElementById("score").textContent=player.score;
- document.getElementById("wave").textContent=wave;
-}
-
-function gameOver(){
- player.alive=false;
- started=false;
- document.exitPointerLock();
- document.getElementById("menu").style.display="flex";
- document.querySelector("#menu h1").textContent="OYUN BİTTİ";
- document.querySelector("#menu h2").textContent="Puan: "+player.score;
- document.querySelector("#menu button").textContent="YENİDEN BAŞLA";
- document.getElementById("start").onclick=()=>location.reload();
+document.getElementById("speed").textContent=Math.round(speed*2);
+document.getElementById("score").textContent=score;
+document.getElementById("lap").textContent=lap;
+document.getElementById("time").textContent=elapsed.toFixed(1);
+document.getElementById("nitroFill").style.width=nitro+"%";
 }
 
 function animate(){
- requestAnimationFrame(animate);
- const dt=Math.min(clock.getDelta(),.05);
+requestAnimationFrame(animate);
+const dt=Math.min(clock.getDelta(),.05);
 
- if(started&&player.alive){
-  updatePlayer(dt);
-  updateZombies(dt);
-  updateBullets(dt);
+if(started&&!finished){
+elapsed+=dt;
+updatePlayer(dt);
+updateRivals(dt);
+collision();
+updateCamera(dt);
+score+=Math.floor(speed*dt);
 
-  spawnTimer+=dt;
-  if(spawnTimer>Math.max(.5,2-wave*.08)){
-   createZombie();
-   spawnTimer=0;
-  }
-
-  if(player.kills>=wave*10){
-   wave++;
-   document.getElementById("message").textContent="DALGA "+wave+" BAŞLADI!";
-  }
-
-  if(player.health<=0)gameOver();
-  updateHUD();
- }
- renderer.render(scene,camera);
+if(elapsed>30&&lap===1){
+lap=2;
+document.getElementById("message").textContent="İKİNCİ TUR!";
+}
+if(elapsed>60&&lap===2){
+lap=3;
+document.getElementById("message").textContent="SON TUR!";
+}
+if(elapsed>90){
+finished=true;
+document.getElementById("menu").style.display="flex";
+document.querySelector("#menu h1").textContent="YARIŞ TAMAMLANDI!";
+document.querySelector("#menu h2").textContent="Puan: "+score;
+document.querySelector("#menu button").textContent="YENİDEN OYNA";
+document.getElementById("start").onclick=()=>location.reload();
+}
+updateHUD();
+}
+renderer.render(scene,camera);
 }
 
 animate();
 
 window.addEventListener("resize",()=>{
- camera.aspect=innerWidth/innerHeight;
- camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
+camera.aspect=innerWidth/innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);
 });
 </script>
 </body>
