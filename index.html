@@ -1,406 +1,286 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Penaltı & Serbest Vuruş 2026 - Lig Sistemli</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-            background-color: #0b1329;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        canvas {
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
-        }
-        .rank-anim {
-            animation: rankPop 1.2s ease-in-out infinite alternate;
-        }
-        @keyframes rankPop {
-            0% { transform: scale(0.95); }
-            100% { transform: scale(1.08); filter: drop-shadow(0 0 15px #f59e0b); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Son Sığınak - 3D Zombi Oyunu</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;background:#080d12;color:white;font-family:Arial}
+#menu{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#071019ee;text-align:center}
+h1{font-size:48px;color:#70ff85}
+button{padding:16px 40px;font-size:20px;color:white;background:#198b43;border:0;border-radius:9px;cursor:pointer}
+#hud{position:fixed;top:15px;left:15px;z-index:5;font-size:19px;line-height:1.8;text-shadow:2px 2px 4px black}
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;z-index:4;pointer-events:none}
+#message{position:fixed;bottom:25px;width:100%;text-align:center;pointer-events:none}
+</style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen text-white p-2">
+<body>
+<div id="menu">
+<h1>SON SIĞINAK</h1>
+<h2>3D ZOMBİ KIYAMETİ</h2>
+<p>Şehirde hayatta kal. Zombilere karşı savaş.</p>
+<button id="start">OYUNA BAŞLA</button>
+<p>WASD: Hareket | Fare: Bakış | Sol tık: Ateş</p>
+</div>
+<div id="hud">
+❤️ Can: <span id="health">100</span><br>
+☠️ Zombi: <span id="kills">0</span><br>
+🌊 Dalga: <span id="wave">1</span><br>
+⭐ Puan: <span id="score">0</span>
+</div>
+<div id="crosshair">+</div>
+<div id="message">Hayatta kal!</div>
 
-    <!-- Üst Skor, Lig ve Profil Paneli -->
-    <div class="w-full max-w-xl bg-slate-900/90 backdrop-blur rounded-2xl p-4 mb-2 border border-slate-700 flex justify-between items-center shadow-2xl">
-        <div class="flex items-center gap-3">
-            <div id="rankBadge" class="w-12 h-12 rounded-xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center font-black text-amber-300 text-xs text-center p-1 leading-tight shadow-lg">
-                BRONZ I
-            </div>
-            <div>
-                <h1 id="playerDisplayName" class="text-lg font-black text-white tracking-wide">Oyuncu</h1>
-                <p id="rankNameDisplay" class="text-xs text-amber-400 font-semibold">Bronz I Ligi</p>
-            </div>
-        </div>
-        <div class="flex gap-3 text-center items-center">
-            <div class="bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-                <div class="text-[10px] text-slate-400 font-bold uppercase">Puan</div>
-                <div id="scoreDisplay" class="text-xl font-black text-emerald-400">0</div>
-            </div>
-            <button onclick="showLeaderboard()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2.5 rounded-xl border border-indigo-400 text-xs font-bold transition flex items-center justify-center shadow-lg">
-                🏆 Sıralama
-            </button>
-        </div>
-    </div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from "three";
 
-    <!-- Oyun Sahası Canvas -->
-    <div class="relative w-full max-w-xl flex justify-center">
-        <canvas id="gameCanvas" width="500" height="620" class="rounded-2xl border-2 border-slate-700 w-full max-w-[500px] h-auto cursor-crosshair"></canvas>
-        
-        <!-- Güç Gösterge Barı (%0 - %99) -->
-        <div class="absolute right-4 top-4 w-5 h-48 bg-slate-900/80 border-2 border-slate-600 rounded-full overflow-hidden flex flex-col justify-end p-0.5 shadow-lg">
-            <div id="powerFill" class="w-full bg-gradient-to-t from-emerald-500 via-amber-400 to-red-500 rounded-full transition-all duration-75" style="height: 0%;"></div>
-            <div id="powerText" class="absolute -left-10 bottom-0 text-[11px] font-black text-amber-300 bg-slate-900/90 px-1 py-0.5 rounded border border-slate-700">%0</div>
-        </div>
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x101923);
+scene.fog=new THREE.Fog(0x101923,20,100);
 
-        <!-- Giriş ve İsim Alma Overlay -->
-        <div id="nameOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 z-30">
-            <h2 class="text-3xl font-black text-amber-400 mb-2 tracking-wider text-center">FUTBOL 2026</h2>
-            <p class="text-slate-300 text-xs mb-6 text-center">Liglerde Yüksel, Penaltı Ustası Ol!</p>
-            
-            <input type="text" id="usernameInput" placeholder="Oyuncu Adınızı Girin" class="w-full max-w-xs px-4 py-3 bg-slate-800 border-2 border-slate-600 rounded-xl text-center text-white font-bold mb-4 focus:outline-none focus:border-amber-400">
-            
-            <button onclick="saveNameAndStart()" class="w-full max-w-xs py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95 text-lg uppercase tracking-wider">
-                OYUNA BAŞLA
-            </button>
-        </div>
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,150);
+camera.position.set(0,1.7,8);
 
-        <!-- Durum / Mesaj Overlay -->
-        <div id="messageOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hidden z-20">
-            <div id="rankUpIcon" class="hidden mb-3 text-6xl rank-anim">🛡️</div>
-            <h2 id="msgTitle" class="text-3xl font-black text-emerald-400 mb-1 tracking-wider text-center">GOL!</h2>
-            <p id="msgSub" class="text-amber-300 text-sm font-semibold mb-6 text-center px-6">+100 Puan Kazandın!</p>
-            <button id="nextBtn" onclick="resetRound()" class="px-8 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/30 transition transform active:scale-95 text-lg uppercase tracking-wider">
-                DEVAM ET
-            </button>
-        </div>
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+document.body.appendChild(renderer.domElement);
 
-        <!-- Sıralama Overlay -->
-        <div id="leaderboardOverlay" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md rounded-2xl flex flex-col p-6 hidden z-40">
-            <h3 class="text-2xl font-black text-amber-400 mb-4 text-center">🏆 LİDERLİK SIRALAMASI</h3>
-            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1"></div>
-            <button onclick="closeLeaderboard()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-600">
-                Kapat
-            </button>
-        </div>
-    </div>
+scene.add(new THREE.HemisphereLight(0x9bbcff,0x303020,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(-15,25,10);
+sun.castShadow=true;
+scene.add(sun);
 
-    <!-- Alt İpucu -->
-    <div class="w-full max-w-xl mt-3 text-center text-xs text-slate-400">
-        ⚽ Topa tıkla/sürükle. Sağdaki bar %0-%99 arası değişirken şutunun **tam gücünü** belirler!
-    </div>
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.MeshStandardMaterial({color:0x303638}));
+ground.rotation.x=-Math.PI/2;
+ground.receiveShadow=true;
+scene.add(ground);
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+const grid=new THREE.GridHelper(150,60,0x657070,0x3b4646);
+grid.position.y=.02;
+scene.add(grid);
 
-        const RANKS = [
-            { name: "Bronz I", minScore: 0, badge: "🥉 I" },
-            { name: "Bronz II", minScore: 300, badge: "🥉 II" },
-            { name: "Bronz III", minScore: 600, badge: "🥉 III" },
-            { name: "Gümüş I", minScore: 1000, badge: "🥈 I" },
-            { name: "Gümüş II", minScore: 1400, badge: "🥈 II" },
-            { name: "Gümüş III", minScore: 1800, badge: "🥈 III" },
-            { name: "Altın I", minScore: 2300, badge: "🥇 I" },
-            { name: "Altın II", minScore: 2800, badge: "🥇 II" },
-            { name: "Altın III", minScore: 3300, badge: "🥇 III" },
-            { name: "Elmas I", minScore: 3900, badge: "💎 I" },
-            { name: "Elmas II", minScore: 4500, badge: "💎 II" },
-            { name: "Elmas III", minScore: 5100, badge: "💎 III" },
-            { name: "Platin I", minScore: 5800, badge: "🛡️ I" },
-            { name: "Platin II", minScore: 6500, badge: "🛡️ II" },
-            { name: "Platin III", minScore: 7200, badge: "🛡️ III" },
-            { name: "Ultra I", minScore: 8000, badge: "⚡ I" },
-            { name: "Ultra II", minScore: 8900, badge: "⚡ II" },
-            { name: "Ultra III", minScore: 9800, badge: "⚡ III" },
-            { name: "Penaltı Ustası", minScore: 11000, badge: "👑 USTA" }
-        ];
+const buildings=[];
+function createBuilding(x,z,w,h,d){
+ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:0x39434a}));
+ b.position.set(x,h/2,z);
+ b.castShadow=true;
+ b.receiveShadow=true;
+ scene.add(b);
+ buildings.push(b);
+}
+for(let i=0;i<35;i++){
+ const x=(Math.random()-.5)*110;
+ const z=(Math.random()-.5)*110;
+ if(Math.abs(x)<12&&Math.abs(z)<12)continue;
+ createBuilding(x,z,4+Math.random()*5,5+Math.random()*15,4+Math.random()*5);
+}
 
-        let playerName = localStorage.getItem('fb_playerName') || '';
-        let score = parseInt(localStorage.getItem('fb_playerScore')) || 0;
-        let currentRankIndex = 0;
-        let gameState = 'AIMING';
-        let powerPercent = 50;
-        let powerDirection = 1;
+const player={health:100,score:0,kills:0,alive:true};
+let started=false,wave=1,yaw=0,pitch=0;
+const keys={};
+const zombies=[];
+const bullets=[];
+const clock=new THREE.Clock();
+let spawnTimer=0,damageTimer=0;
 
-        const goal = { x: 100, y: 110, width: 300, height: 130 };
-        const ball = { x: 250, y: 520, radius: 13, vx: 0, vy: 0, vz: 0, z: 0 };
-        const goalkeeper = { x: 250, y: 190, width: 42, height: 50, vx: 2, state: 'IDLE' };
-        let netShake = 0;
+document.addEventListener("keydown",e=>keys[e.code]=true);
+document.addEventListener("keyup",e=>keys[e.code]=false);
 
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
+document.addEventListener("mousemove",e=>{
+ if(document.pointerLockElement!==renderer.domElement)return;
+ yaw-=e.movementX*.002;
+ pitch-=e.movementY*.002;
+ pitch=THREE.MathUtils.clamp(pitch,-1.4,1.4);
+ camera.rotation.order="YXZ";
+ camera.rotation.y=yaw;
+ camera.rotation.x=pitch;
+});
 
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new AudioCtx();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
+function createZombie(){
+ const zombie=new THREE.Group();
+ const color=new THREE.Color().setHSL(.25+Math.random()*.12,.45,.35);
+ const material=new THREE.MeshStandardMaterial({color});
+ const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.2,.5),material);
+ body.position.y=1;
+ body.castShadow=true;
+ zombie.add(body);
 
-            if (type === 'kick') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
-                gain.gain.setValueAtTime(0.8, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-                osc.start(now); osc.stop(now + 0.12);
-            } else if (type === 'goal') {
-                for (let i = 0; i < 3; i++) {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(300 + i * 150, now);
-                    osc.frequency.exponentialRampToValueAtTime(600 + i * 100, now + 0.6);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
-                    osc.start(now); osc.stop(now + 0.6);
-                }
-            } else if (type === 'post') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(450, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
-                gain.gain.setValueAtTime(0.7, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                osc.start(now); osc.stop(now + 0.25);
-            } else if (type === 'save') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.linearRampToValueAtTime(50, now + 0.2);
-                gain.gain.setValueAtTime(0.5, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now); osc.stop(now + 0.2);
-            }
-        }
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.32,12,12),new THREE.MeshStandardMaterial({color:0x83a65a}));
+ head.position.y=1.8;
+ zombie.add(head);
 
-        if (playerName) {
-            document.getElementById('nameOverlay').classList.add('hidden');
-            document.getElementById('playerDisplayName').innerText = playerName;
-            updateRankUI();
-        }
+ for(let i=-1;i<=1;i+=2){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),new THREE.MeshBasicMaterial({color:0xff2222}));
+  eye.position.set(i*.12,1.85,.27);
+  zombie.add(eye);
+ }
 
-        function saveNameAndStart() {
-            const input = document.getElementById('usernameInput').value.trim();
-            if (!input) return;
-            playerName = input;
-            localStorage.setItem('fb_playerName', playerName);
-            document.getElementById('playerDisplayName').innerText = playerName;
-            document.getElementById('nameOverlay').classList.add('hidden');
-            updateRankUI();
-            saveLeaderboard();
-        }
+ const angle=Math.random()*Math.PI*2;
+ const distance=25+Math.random()*12;
+ zombie.position.set(camera.position.x+Math.cos(angle)*distance,0,camera.position.z+Math.sin(angle)*distance);
+ zombie.userData={health:2,speed:1.1+Math.random()*.7,attack:0};
+ scene.add(zombie);
+ zombies.push(zombie);
+}
 
-        function updateRankUI() {
-            let newRankIndex = 0;
-            for (let i = RANKS.length - 1; i >= 0; i--) {
-                if (score >= RANKS[i].minScore) {
-                    newRankIndex = i;
-                    break;
-                }
-            }
-            const currentRank = RANKS[newRankIndex];
-            document.getElementById('scoreDisplay').innerText = score;
-            document.getElementById('rankNameDisplay').innerText = currentRank.name + " Ligi";
-            document.getElementById('rankBadge').innerText = currentRank.badge;
+function shoot(){
+ if(!started||!player.alive)return;
+ const direction=new THREE.Vector3();
+ camera.getWorldDirection(direction);
+ const bullet=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),new THREE.MeshBasicMaterial({color:0x7dffad}));
+ bullet.position.copy(camera.position);
+ bullet.userData={velocity:direction.multiplyScalar(45),life:2};
+ scene.add(bullet);
+ bullets.push(bullet);
+}
 
-            if (newRankIndex > currentRankIndex && currentRankIndex !== 0) {
-                showRankUpAnimation(currentRank.name);
-            }
-            currentRankIndex = newRankIndex;
-            saveLeaderboard();
-        }
+document.addEventListener("mousedown",e=>{
+ if(e.button===0)shoot();
+});
 
-        function showRankUpAnimation(rankName) {
-            const overlay = document.getElementById('messageOverlay');
-            document.getElementById('rankUpIcon').classList.remove('hidden');
-            document.getElementById('msgTitle').innerText = "LİG YÜKSELDİN!";
-            document.getElementById('msgTitle').className = "text-3xl font-black text-amber-400 mb-1 text-center";
-            document.getElementById('msgSub').innerText = "Tebrikler! Yeni Lig: " + rankName;
-            overlay.classList.remove('hidden');
-        }
+document.getElementById("start").onclick=()=>{
+ if(!started){
+  started=true;
+  document.getElementById("menu").style.display="none";
+  renderer.domElement.requestPointerLock();
+ }
+};
 
-        function updatePowerBar() {
-            if (gameState === 'AIMING') {
-                powerPercent += powerDirection * 2.2;
-                if (powerPercent >= 99) { powerPercent = 99; powerDirection = -1; }
-                if (powerPercent <= 0) { powerPercent = 0; powerDirection = 1; }
-                document.getElementById('powerFill').style.height = powerPercent + '%';
-                document.getElementById('powerText').innerText = '%' + Math.floor(powerPercent);
-            }
-        }
+document.addEventListener("keydown",e=>{
+ if(e.code==="Escape"&&started&&player.alive){
+  document.exitPointerLock();
+  document.getElementById("menu").style.display="flex";
+  document.querySelector("#menu h1").textContent="OYUN DURAKLATILDI";
+  document.querySelector("#menu button").textContent="DEVAM ET";
+  document.getElementById("start").onclick=()=>{
+   document.getElementById("menu").style.display="none";
+   renderer.domElement.requestPointerLock();
+  };
+ }
+});
 
-        let dragStart = null;
-        function getCanvasPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return {
-                x: (clientX - rect.left) * (canvas.width / rect.width),
-                y: (clientY - rect.top) * (canvas.height / rect.height)
-            };
-        }
+function updatePlayer(dt){
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ const move=new THREE.Vector3();
+ if(keys.KeyW||keys.ArrowUp)move.add(forward);
+ if(keys.KeyS||keys.ArrowDown)move.sub(forward);
+ if(keys.KeyD||keys.ArrowRight)move.add(right);
+ if(keys.KeyA||keys.ArrowLeft)move.sub(right);
+ if(move.lengthSq()>0){
+  move.normalize().multiplyScalar(8*dt);
+  camera.position.add(move);
+ }
+ camera.position.y=1.7;
+ camera.position.x=THREE.MathUtils.clamp(camera.position.x,-65,65);
+ camera.position.z=THREE.MathUtils.clamp(camera.position.z,-65,65);
+}
 
-        canvas.addEventListener('mousedown', (e) => {
-            if (gameState !== 'AIMING') return;
-            dragStart = getCanvasPos(e);
-        });
+function updateZombies(dt){
+ for(let i=zombies.length-1;i>=0;i--){
+  const z=zombies[i];
+  const dx=camera.position.x-z.position.x;
+  const dz=camera.position.z-z.position.z;
+  const distance=Math.hypot(dx,dz);
+  if(distance>1.35){
+   z.position.x+=(dx/distance)*z.userData.speed*dt;
+   z.position.z+=(dz/distance)*z.userData.speed*dt;
+   z.lookAt(camera.position.x,0,camera.position.z);
+  }else{
+   z.userData.attack-=dt;
+   if(z.userData.attack<=0){
+    player.health=Math.max(0,player.health-8);
+    z.userData.attack=.8;
+   }
+  }
+ }
+}
 
-        window.addEventListener('mouseup', (e) => {
-            if (!dragStart || gameState !== 'AIMING') return;
-            const dragEnd = getCanvasPos(e);
-            shoot(dragStart, dragEnd);
-            dragStart = null;
-        });
+function updateBullets(dt){
+ for(let i=bullets.length-1;i>=0;i--){
+  const b=bullets[i];
+  b.position.addScaledVector(b.userData.velocity,dt);
+  b.userData.life-=dt;
+  let hit=false;
+  for(let j=zombies.length-1;j>=0;j--){
+   if(b.position.distanceTo(zombies[j].position.clone().add(new THREE.Vector3(0,1,0)))<1){
+    zombies[j].userData.health--;
+    if(zombies[j].userData.health<=0){
+     scene.remove(zombies[j]);
+     zombies.splice(j,1);
+     player.kills++;
+     player.score+=100;
+    }
+    hit=true;
+    break;
+   }
+  }
+  if(hit||b.userData.life<=0){
+   scene.remove(b);
+   bullets.splice(i,1);
+  }
+ }
+}
 
-        canvas.addEventListener('touchstart', (e) => {
-            if (gameState !== 'AIMING') return;
-            dragStart = getCanvasPos(e);
-        }, { passive: true });
+function updateHUD(){
+ document.getElementById("health").textContent=player.health;
+ document.getElementById("kills").textContent=player.kills;
+ document.getElementById("score").textContent=player.score;
+ document.getElementById("wave").textContent=wave;
+}
 
-        canvas.addEventListener('touchend', (e) => {
-            if (!dragStart || gameState !== 'AIMING') return;
-            const dragEnd = e.changedTouches ? {
-                x: (e.changedTouches[0].clientX - canvas.getBoundingClientRect().left) * (canvas.width / canvas.getBoundingClientRect().width),
-                y: (e.changedTouches[0].clientY - canvas.getBoundingClientRect().top) * (canvas.height / canvas.getBoundingClientRect().height)
-            } : dragStart;
-            shoot(dragStart, dragEnd);
-            dragStart = null;
-        });
+function gameOver(){
+ player.alive=false;
+ started=false;
+ document.exitPointerLock();
+ document.getElementById("menu").style.display="flex";
+ document.querySelector("#menu h1").textContent="OYUN BİTTİ";
+ document.querySelector("#menu h2").textContent="Puan: "+player.score;
+ document.querySelector("#menu button").textContent="YENİDEN BAŞLA";
+ document.getElementById("start").onclick=()=>location.reload();
+}
 
-        function shoot(start, end) {
-            const dx = end.x - start.x;
-            const dy = end.y - start.y;
-            if (dy >= -10) return;
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.05);
 
-            const speedFactor = (powerPercent / 100) * 1.3 + 0.4;
-            ball.vx = dx * 0.07 * speedFactor;
-            ball.vy = dy * 0.08 * speedFactor;
-            ball.vz = -dy * 0.022 * speedFactor;
+ if(started&&player.alive){
+  updatePlayer(dt);
+  updateZombies(dt);
+  updateBullets(dt);
 
-            playSound('kick');
-            gameState = 'IN_FLIGHT';
-        }
+  spawnTimer+=dt;
+  if(spawnTimer>Math.max(.5,2-wave*.08)){
+   createZombie();
+   spawnTimer=0;
+  }
 
-        function update() {
-            updatePowerBar();
-            if (gameState === 'AIMING') {
-                goalkeeper.x += goalkeeper.vx;
-                if (goalkeeper.x < goal.x + 40 || goalkeeper.x > goal.x + goal.width - 40) {
-                    goalkeeper.vx *= -1;
-                }
-            }
+  if(player.kills>=wave*10){
+   wave++;
+   document.getElementById("message").textContent="DALGA "+wave+" BAŞLADI!";
+  }
 
-            if (netShake > 0) netShake -= 0.5;
+  if(player.health<=0)gameOver();
+  updateHUD();
+ }
+ renderer.render(scene,camera);
+}
 
-            if (gameState === 'IN_FLIGHT') {
-                ball.x += ball.vx;
-                ball.y += ball.vy;
-                ball.z += ball.vz;
-                ball.vz -= 0.12;
+animate();
 
-                if (ball.z < 0) ball.z = 0;
-
-                if (ball.y < 320 && ball.y > 140) {
-                    goalkeeper.x += (ball.x - goalkeeper.x) * 0.1;
-                }
-
-                if (Math.abs(ball.x - goalkeeper.x) < 25 && Math.abs(ball.y - goalkeeper.y) < 25 && ball.z < 55) {
-                    playSound('save');
-                    score = Math.max(0, score - 100);
-                    goalkeeper.state = 'CELEBRATE';
-                    endRound('KURTARILDI!', '-100 Puan (Kaleci Kurtardı)', 'text-red-400');
-                    return;
-                }
-
-                const isNearPostLeft = Math.abs(ball.x - goal.x) < 10;
-                const isNearPostRight = Math.abs(ball.x - (goal.x + goal.width)) < 10;
-                const isNearCrossbar = Math.abs(ball.z - goal.height) < 10;
-
-                if (ball.y <= goal.y + 10 && (isNearPostLeft || isNearPostRight || isNearCrossbar)) {
-                    playSound('post');
-                    ball.vx *= -0.8;
-                    ball.vy *= -0.3;
-                    score = Math.max(0, score - 100);
-                    endRound('DİREK!', '-100 Puan (Top Direkten Döndü)', 'text-amber-400');
-                    return;
-                }
-
-                if (ball.y <= goal.y + 10) {
-                    const inGoalWidth = ball.x > goal.x + 8 && ball.x < goal.x + goal.width - 8;
-                    const inGoalHeight = ball.z < goal.height - 5;
-
-                    if (inGoalWidth && inGoalHeight) {
-                        playSound('goal');
-                        netShake = 12;
-                        score += 100;
-                        endRound('GOL!', '+100 Puan Kazanıldı!', 'text-emerald-400');
-                    } else {
-                        playSound('save');
-                        score = Math.max(0, score - 100);
-                        endRound('AUT!', '-100 Puan (Top Dışarı Çıktı)', 'text-red-400');
-                    }
-                }
-            }
-        }
-
-        function endRound(title, sub, colorClass) {
-            gameState = 'RESULT';
-            updateRankUI();
-            setTimeout(() => {
-                const overlay = document.getElementById('messageOverlay');
-                document.getElementById('rankUpIcon').classList.add('hidden');
-                document.getElementById('msgTitle').innerText = title;
-                document.getElementById('msgTitle').className = "text-4xl font-black mb-1 text-center " + colorClass;
-                document.getElementById('msgSub').innerText = sub;
-                overlay.classList.remove('hidden');
-            }, 500);
-        }
-
-        function resetRound() {
-            document.getElementById('messageOverlay').classList.add('hidden');
-            ball.x = 250; ball.y = 520; ball.z = 0;
-            ball.vx = 0; ball.vy = 0; ball.vz = 0;
-            goalkeeper.x = 250; goalkeeper.state = 'IDLE';
-            gameState = 'AIMING';
-        }
-
-        function saveLeaderboard() {
-            let leaderboard = JSON.parse(localStorage.getItem('fb_leaderboard')) || [
-                { name: "X Kişisi", score: 1000 },
-                { name: "Y Kişisi", score: 900 },
-                { name: "Z Kişisi", score: 800 }
-            ];
-
-            if (playerName) {
-                const existingIndex = leaderboard.findIndex(item => item.name === playerName);
-                if (existingIndex !== -1) {
-                    leaderboard[existingIndex].score = Math.max(leaderboard[existingIndex].score, score);
-                } else {
-                    leaderboard.push({ name: playerName, score: score });
-                }
-            }
-
-            leaderboard.sort((a, b) => b.score - a.score);
-            localStorage.setItem('fb_leaderboard', JSON.stringify(leaderboard));
-            localStorage.setItem('fb_playerScore', score);
-        }
-
-        function showLeaderboard() {
-            saveLeaderboard();
-            let leaderboard = JSON.parse(localStorage.getItem('fb_leaderboard')) || [];
-            const container = document.getElementById('leaderboardList');
-            container.innerHTML = '';
-
-            leaderboard.forEach((item, index) => {
-                const row = document.createElement('div');
-                row.className = `flex justify-between items-center p-3 rounded-xl border ${item.name === playerName ? 'bg-amber-500/20 border-amber-40
+window.addEventListener("resize",()=>{
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>
