@@ -3,30 +3,37 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>NEON RACER - 3D Yarış Oyunu</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#080b13;color:white;font-family:Arial}
+body{margin:0;overflow:hidden;background:#080b13;color:white;font-family:Arial;touch-action:none}
 canvas{display:block}
-#menu{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#080b13,#14233b);text-align:center}
-h1{font-size:60px;color:#00eaff;text-shadow:0 0 25px #00eaff}
-button{padding:16px 45px;background:#00bcd4;color:white;border:0;border-radius:8px;font-size:21px;font-weight:bold;cursor:pointer;margin:10px}
-#hud{position:fixed;top:15px;left:15px;font-size:20px;line-height:1.8;text-shadow:2px 2px 5px black;pointer-events:none}
-#message{position:fixed;bottom:20px;width:100%;text-align:center;font-size:17px;pointer-events:none}
-#nitro{position:fixed;right:20px;top:20px;width:160px;height:15px;background:#333;border:2px solid white}
+#menu{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#080b13,#14233b);text-align:center;padding:20px}
+h1{font-size:clamp(38px,10vw,60px);color:#00eaff;text-shadow:0 0 25px #00eaff}
+button{padding:15px 30px;background:#00bcd4;color:white;border:0;border-radius:12px;font-size:20px;font-weight:bold}
+#hud{position:fixed;top:10px;left:10px;font-size:16px;line-height:1.7;text-shadow:2px 2px 5px black;pointer-events:none}
+#message{position:fixed;top:12px;width:100%;text-align:center;font-size:15px;pointer-events:none}
+#nitro{position:fixed;right:12px;top:12px;width:100px;height:12px;background:#333;border:1px solid white}
 #nitroFill{height:100%;width:100%;background:#00eaff}
+#controls{position:fixed;bottom:20px;left:0;width:100%;display:flex;justify-content:space-between;padding:0 20px;z-index:5;pointer-events:none}
+.controlGroup{display:flex;gap:12px;pointer-events:auto}
+.control{width:65px;height:65px;border-radius:50%;background:#162d43dd;border:2px solid #00dfff;color:white;font-size:25px;display:flex;align-items:center;justify-content:center;user-select:none;touch-action:none}
+#nitroButton{width:75px;height:75px;background:#087eaa;font-size:15px;font-weight:bold}
+#gasButton{width:75px;height:75px;background:#178b46;font-size:15px;font-weight:bold}
 </style>
 </head>
 <body>
+
 <div id="menu">
 <h1>NEON RACER</h1>
 <h2>3D ŞEHİR YARIŞI</h2>
-<p>Şehirde yarış, rakiplerini geç ve şampiyon ol!</p>
-<p>WASD / Ok Tuşları: Sürüş</p>
-<p>SPACE: Nitro | R: Yeniden başlat</p>
+<p>Telefon ve bilgisayar uyumlu yarış oyunu</p>
+<p>Sol tuş sola, sağ tuş sağa yönlendirir.</p>
+<p>GAZ ile hızlan, NİTRO ile hızını artır!</p>
 <button id="start">YARIŞA BAŞLA</button>
 </div>
+
 <div id="hud">
 🏁 Tur: <span id="lap">1</span>/3<br>
 🏎️ Hız: <span id="speed">0</span> KM/H<br>
@@ -35,6 +42,17 @@ button{padding:16px 45px;background:#00bcd4;color:white;border:0;border-radius:8
 </div>
 <div id="nitro"><div id="nitroFill"></div></div>
 <div id="message">Yarışa hazır ol!</div>
+
+<div id="controls">
+<div class="controlGroup">
+<div class="control" id="left">◀</div>
+<div class="control" id="right">▶</div>
+</div>
+<div class="controlGroup">
+<div class="control" id="nitroButton">NİTRO</div>
+<div class="control" id="gasButton">GAZ</div>
+</div>
+</div>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
@@ -52,9 +70,8 @@ camera.position.set(0,7,13);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0x9dbbff,0x222233,2));
@@ -68,7 +85,6 @@ new THREE.PlaneGeometry(300,300),
 new THREE.MeshStandardMaterial({color:0x252b35})
 );
 ground.rotation.x=-Math.PI/2;
-ground.receiveShadow=true;
 scene.add(ground);
 
 const road=new THREE.Mesh(
@@ -102,15 +118,11 @@ const side=Math.random()<.5?-1:1;
 const w=4+Math.random()*7;
 const h=8+Math.random()*35;
 const d=5+Math.random()*8;
-
 const building=new THREE.Mesh(
 new THREE.BoxGeometry(w,h,d),
-new THREE.MeshStandardMaterial({
-color:new THREE.Color().setHSL(.58+Math.random()*.2,.3,.18)
-})
+new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(.58+Math.random()*.2,.3,.18)})
 );
 building.position.set(side*(14+Math.random()*25),h/2,-140+Math.random()*280);
-building.castShadow=true;
 scene.add(building);
 
 for(let j=0;j<12;j++){
@@ -118,56 +130,35 @@ const windowLight=new THREE.Mesh(
 new THREE.BoxGeometry(.5,.7,.05),
 new THREE.MeshBasicMaterial({color:Math.random()>.5?0x00dfff:0xffd166})
 );
-windowLight.position.set(
-building.position.x+(Math.random()-.5)*w,
-Math.random()*h,
-building.position.z+d/2+.04
-);
+windowLight.position.set(building.position.x+(Math.random()-.5)*w,Math.random()*h,building.position.z+d/2+.04);
 scene.add(windowLight);
 }
 }
 
 function createCar(color){
 const car=new THREE.Group();
-
-const body=new THREE.Mesh(
-new THREE.BoxGeometry(2.2,.7,4),
-new THREE.MeshStandardMaterial({color,metalness:.7,roughness:.25})
-);
+const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,4),new THREE.MeshStandardMaterial({color,metalness:.7,roughness:.25}));
 body.position.y=.8;
-body.castShadow=true;
 car.add(body);
 
-const cabin=new THREE.Mesh(
-new THREE.BoxGeometry(1.5,.8,1.8),
-new THREE.MeshStandardMaterial({color:0x152b3d,metalness:.5,roughness:.2})
-);
+const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.5,.8,1.8),new THREE.MeshStandardMaterial({color:0x152b3d,metalness:.5,roughness:.2}));
 cabin.position.set(0,1.45,-.2);
 car.add(cabin);
 
 for(const x of [-1.1,1.1]){
 for(const z of [-1.25,1.25]){
-const wheel=new THREE.Mesh(
-new THREE.CylinderGeometry(.48,.48,.3,20),
-new THREE.MeshStandardMaterial({color:0x090909})
-);
+const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.3,16),new THREE.MeshStandardMaterial({color:0x090909}));
 wheel.rotation.z=Math.PI/2;
 wheel.position.set(x,.5,z);
 car.add(wheel);
 }}
 
 for(const x of [-.75,.75]){
-const light=new THREE.Mesh(
-new THREE.BoxGeometry(.45,.2,.1),
-new THREE.MeshBasicMaterial({color:0xffffff})
-);
+const light=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.1),new THREE.MeshBasicMaterial({color:0xffffff}));
 light.position.set(x,.9,2.02);
 car.add(light);
 
-const rear=new THREE.Mesh(
-new THREE.BoxGeometry(.4,.2,.1),
-new THREE.MeshBasicMaterial({color:0xff1111})
-);
+const rear=new THREE.Mesh(new THREE.BoxGeometry(.4,.2,.1),new THREE.MeshBasicMaterial({color:0xff1111}));
 rear.position.set(x,.9,-2.02);
 car.add(rear);
 }
@@ -188,21 +179,32 @@ rivals.push(rival);
 }
 
 const keys={};
+let touchLeft=false,touchRight=false,touchGas=false,touchNitro=false;
+
+function bindTouch(id,callback){
+const el=document.getElementById(id);
+el.addEventListener("pointerdown",e=>{
+e.preventDefault();
+el.setPointerCapture(e.pointerId);
+callback(true);
+});
+el.addEventListener("pointerup",e=>{e.preventDefault();callback(false)});
+el.addEventListener("pointercancel",()=>callback(false));
+el.addEventListener("lostpointercapture",()=>callback(false));
+}
+
+bindTouch("left",v=>touchLeft=v);
+bindTouch("right",v=>touchRight=v);
+bindTouch("gasButton",v=>touchGas=v);
+bindTouch("nitroButton",v=>touchNitro=v);
+
 document.addEventListener("keydown",e=>{
 keys[e.code]=true;
 if(e.code==="KeyR")location.reload();
 });
 document.addEventListener("keyup",e=>keys[e.code]=false);
 
-let started=false;
-let speed=0;
-let score=0;
-let lap=1;
-let nitro=100;
-let elapsed=0;
-let finished=false;
-let nitroActive=false;
-
+let started=false,speed=0,score=0,lap=1,nitro=100,elapsed=0,finished=false;
 const clock=new THREE.Clock();
 
 document.getElementById("start").onclick=()=>{
@@ -212,16 +214,16 @@ document.getElementById("message").textContent="YARIŞ BAŞLADI!";
 };
 
 function updatePlayer(dt){
-const accelerating=keys.KeyW||keys.ArrowUp;
+const accelerating=keys.KeyW||keys.ArrowUp||touchGas;
 const braking=keys.KeyS||keys.ArrowDown;
-const left=keys.KeyA||keys.ArrowLeft;
-const right=keys.KeyD||keys.ArrowRight;
 
-nitroActive=keys.Space&&nitro>0&&speed>10;
+// DÜZELTİLDİ: Sol tuş sola, sağ tuş sağa gider.
+const left=keys.KeyA||keys.ArrowLeft||touchLeft;
+const right=keys.KeyD||keys.ArrowRight||touchRight;
+const nitroActive=(keys.Space||touchNitro)&&nitro>0&&speed>10;
 
 if(accelerating)speed+=30*dt;
 else speed-=10*dt;
-
 if(braking)speed-=45*dt;
 
 if(nitroActive){
@@ -233,14 +235,11 @@ nitro=Math.min(100,nitro+10*dt);
 
 speed=THREE.MathUtils.clamp(speed,0,100);
 
-const steering=(left?1:0)-(right?1:0);
+const steering=(right?1:0)-(left?1:0);
 playerCar.position.x+=steering*(8+speed*.08)*dt;
 playerCar.position.x=THREE.MathUtils.clamp(playerCar.position.x,-7,7);
 
-playerCar.rotation.z=THREE.MathUtils.lerp(
-playerCar.rotation.z,-steering*.15,dt*5
-);
-playerCar.position.z=5;
+playerCar.rotation.z=THREE.MathUtils.lerp(playerCar.rotation.z,-steering*.15,dt*5);
 }
 
 function updateRivals(dt){
@@ -264,9 +263,9 @@ document.getElementById("message").textContent="DİKKAT! RAKİBE ÇARPTIN!";
 }
 
 function updateCamera(dt){
-const target=new THREE.Vector3(playerCar.position.x*.6,6,playerCar.position.z+12);
+const target=new THREE.Vector3(playerCar.position.x*.6,6,17);
 camera.position.lerp(target,dt*3);
-camera.lookAt(playerCar.position.x,1,playerCar.position.z-10);
+camera.lookAt(playerCar.position.x,1,-5);
 }
 
 function updateHUD(){
