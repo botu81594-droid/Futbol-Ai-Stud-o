@@ -67,16 +67,123 @@ const grid=new THREE.GridHelper(150,60,0x657070,0x3b4646);
 grid.position.y=.02;
 scene.add(grid);
 
-const buildings=[];
-function createBuilding(x,z,w,h,d){
- const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:0x39434a}));
- b.position.set(x,h/2,z);
- b.castShadow=true;
- b.receiveShadow=true;
- scene.add(b);
- buildings.push(b);
+const buildings = [];
+
+function createBuilding(x, z, w, h, d) {
+    const building = new THREE.Group();
+
+    // Ana beton duvar
+    const wall = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({
+            color: 0x51565a,
+            roughness: 0.95
+        })
+    );
+
+    wall.position.y = h / 2;
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    building.add(wall);
+
+    // Tuğla detayları
+    const brickMaterial = new THREE.MeshStandardMaterial({
+        color: 0x794b3a,
+        roughness: 1
+    });
+
+    for (let row = 0; row < Math.floor(h / 1.1); row++) {
+        for (let col = 0; col < Math.floor(w / 1.2); col++) {
+            const brick = new THREE.Mesh(
+                new THREE.BoxGeometry(1.05, 0.18, 0.08),
+                brickMaterial
+            );
+
+            brick.position.set(
+                -w / 2 + 0.6 + col * 1.2 + (row % 2) * 0.5,
+                0.5 + row * 1.1,
+                d / 2 + 0.045
+            );
+
+            building.add(brick);
+        }
+    }
+
+    // Pencereler
+    const windowMaterial = new THREE.MeshStandardMaterial({
+        color: 0x101d27,
+        emissive: 0x152a35,
+        emissiveIntensity: 0.4
+    });
+
+    const windowCount = Math.max(1, Math.floor(w / 2));
+
+    for (let i = 0; i < windowCount; i++) {
+        const win = new THREE.Mesh(
+            new THREE.BoxGeometry(0.9, 1.1, 0.12),
+            windowMaterial
+        );
+
+        win.position.set(
+            -w / 2 + 1 + i * 2,
+            h * 0.65,
+            d / 2 + 0.08
+        );
+
+        building.add(win);
+
+        // Pencere çerçevesi
+        const frame = new THREE.Mesh(
+            new THREE.BoxGeometry(1.05, 1.25, 0.1),
+            new THREE.MeshStandardMaterial({ color: 0x242a2e })
+        );
+
+        frame.position.copy(win.position);
+        frame.position.z += 0.09;
+        building.add(frame);
+    }
+
+    // Beton üst kenar
+    const roof = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.3, 0.25, d + 0.3),
+        new THREE.MeshStandardMaterial({ color: 0x292e32 })
+    );
+
+    roof.position.y = h + 0.1;
+    building.add(roof);
+
+    // Paslı metal detaylar
+    const metal = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.1, 0.12, 0.12),
+        new THREE.MeshStandardMaterial({
+            color: 0x70432b,
+            metalness: 0.6,
+            roughness: 0.8
+        })
+    );
+
+    metal.position.set(0, h * 0.35, d / 2 + 0.1);
+    building.add(metal);
+
+    building.position.set(x, 0, z);
+    scene.add(building);
+    buildings.push(building);
 }
-for(let i=0;i<35;i++){
+
+for (let i = 0; i < 35; i++) {
+    const x = (Math.random() - 0.5) * 110;
+    const z = (Math.random() - 0.5) * 110;
+
+    if (Math.abs(x) < 12 && Math.abs(z) < 12) continue;
+
+    createBuilding(
+        x,
+        z,
+        5 + Math.random() * 6,
+        7 + Math.random() * 14,
+        5 + Math.random() * 6
+    );
+}
  const x=(Math.random()-.5)*110;
  const z=(Math.random()-.5)*110;
  if(Math.abs(x)<12&&Math.abs(z)<12)continue;
